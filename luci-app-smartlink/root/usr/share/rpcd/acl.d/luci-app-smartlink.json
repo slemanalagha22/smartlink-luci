@@ -33,7 +33,8 @@
 				"iwinfo": [
 					"assoclist",
 					"info",
-					"devices"
+					"devices",
+					"scan"
 				],
 				"uci": [
 					"get",
@@ -41,7 +42,8 @@
 				],
 				"file": [
 					"read",
-					"exec"
+					"exec",
+					"stat"
 				]
 			},
 			"file": {
@@ -56,6 +58,9 @@
 				],
 				"/sbin/logread": [
 					"exec"
+				],
+				"/usr/lib/opkg/info/*": [
+					"read"
 				]
 			}
 		},

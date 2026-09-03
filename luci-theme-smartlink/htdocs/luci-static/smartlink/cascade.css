@@ -1736,59 +1736,6 @@ body.modal-overlay-active #modal_overlay {
 	margin-block-end: 0;
 }
 
-/* --------------------------------------------------------- login screen */
-
-.sl-login-page {
-	flex: 1 0 auto;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: 48px var(--sl-margin-mobile);
-	background:
-		radial-gradient(1200px 600px at 50% -10%, rgba(46, 168, 228, .16), transparent 70%),
-		var(--sl-page);
-}
-
-.sl-login-card {
-	inline-size: 100%;
-	max-inline-size: 420px;
-	padding: 32px;
-	background: var(--sl-card);
-	border: 1px solid var(--sl-border);
-	border-radius: 16px;
-	box-shadow: var(--sl-shadow-raised);
-}
-
-.sl-login-head { text-align: center; margin-block-end: var(--sl-gutter); }
-.sl-login-logo { inline-size: 48px; block-size: 48px; color: var(--sl-primary-bright); }
-
-.sl-login-head h1 {
-	margin: 12px 0 4px;
-	font-size: 26px;
-	line-height: 34px;
-	font-weight: 700;
-}
-
-.sl-login-head p { color: var(--sl-ink-subtle); font-size: 14px; margin: 0; }
-
-.sl-login-card .cbi-section-node { grid-template-columns: 1fr; gap: 16px; }
-.sl-login-card .cbi-map,
-.sl-login-card .cbi-section {
-	background: transparent;
-	border: 0;
-	box-shadow: none;
-	padding: 0;
-	margin-block-end: 0;
-}
-
-.sl-login-card hr { display: none; }
-
-.sl-login-card > #view > button,
-.sl-login-card .cbi-button-positive {
-	inline-size: 100%;
-	margin-block-start: var(--sl-gutter);
-}
-
 /* ---------------------------------------------------------- uci changes */
 
 .uci-change-list { font-family: var(--sl-font-mono); font-size: 13px; }
@@ -1989,7 +1936,6 @@ body.modal-overlay-active #modal_overlay {
 	.cbi-page-actions .btn,
 	.cbi-page-actions .cbi-button { flex: 1 1 auto; }
 	.modal { padding: 18px; }
-	.sl-login-card { padding: 24px; }
 }
 
 @media print {
@@ -2408,4 +2354,241 @@ a.sl-tile:hover .sl-tile-icon,
 	.sl-flow { flex-direction: column; gap: 20px; align-items: center; }
 	.sl-flow::before { display: none; }
 	.sl-table-wrap > .sl-table { min-inline-size: 620px; }
+}
+
+/* =====================================================================
+ * Physical ports
+ * ===================================================================== */
+
+.sl-ports {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.sl-port {
+	flex: 1 1 84px;
+	min-inline-size: 84px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
+	padding: 12px 8px;
+	border: 1px solid var(--sl-border);
+	border-radius: var(--sl-radius-control);
+	background: var(--sl-inset);
+	transition: border-color .15s ease, background-color .15s ease;
+}
+
+.sl-port-jack {
+	inline-size: 44px;
+	block-size: 34px;
+	border-radius: 6px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--sl-border-strong);
+	color: var(--sl-card);
+}
+
+.sl-port-jack svg { inline-size: 26px; block-size: 26px; fill: currentColor; }
+.sl-port-name { font-size: 12px; font-weight: 700; }
+.sl-port-speed { font-size: 11px; color: var(--sl-ink-subtle); }
+
+.sl-port.is-up {
+	border-color: var(--sl-success);
+	background: color-mix(in srgb, var(--sl-success) 10%, transparent);
+}
+
+.sl-port.is-up .sl-port-jack { background: var(--sl-success); }
+.sl-port.is-up .sl-port-speed { color: var(--sl-success); font-weight: 700; }
+
+.sl-port.is-wan.is-up { border-color: var(--sl-accent-internet); background: color-mix(in srgb, var(--sl-accent-internet) 10%, transparent); }
+.sl-port.is-wan.is-up .sl-port-jack { background: var(--sl-accent-internet); }
+.sl-port.is-wan.is-up .sl-port-speed { color: var(--sl-accent-internet); }
+
+.sl-port.is-down { opacity: .72; }
+
+/* =====================================================================
+ * Operation mode cards
+ * ===================================================================== */
+
+.sl-mode {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: var(--sl-gutter);
+	border: 2px solid var(--sl-border);
+	border-radius: var(--sl-radius-card);
+	background: var(--sl-card);
+	cursor: pointer;
+	/* Browsers centre a button's contents by default; these read as cards. */
+	text-align: start;
+	align-items: flex-start;
+	transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.sl-mode:hover { border-color: var(--sl-accent, var(--sl-primary-bright)); }
+
+.sl-mode.is-current {
+	border-color: var(--sl-accent, var(--sl-primary-bright));
+	box-shadow: var(--sl-shadow-raised);
+}
+
+.sl-mode.is-unavailable { opacity: .6; cursor: not-allowed; }
+
+.sl-mode-icon {
+	inline-size: 46px;
+	block-size: 46px;
+	border-radius: var(--sl-radius-chip);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--sl-accent, var(--sl-primary-bright));
+	color: #fff;
+}
+
+.sl-mode-icon svg { inline-size: 24px; block-size: 24px; fill: currentColor; }
+.sl-mode-title { font-size: 16px; font-weight: 700; }
+.sl-mode-desc { font-size: 13px; color: var(--sl-ink-subtle); }
+
+.sl-mode-tag {
+	position: absolute;
+	inset-block-start: 12px;
+	inset-inline-end: 12px;
+	font-size: 11px;
+	font-weight: 700;
+	padding: 3px 10px;
+	border-radius: var(--sl-radius-chip);
+	background: var(--sl-accent, var(--sl-primary-bright));
+	color: #fff;
+}
+
+/* Scan results */
+
+.sl-scan { display: grid; gap: 8px; max-block-size: 320px; overflow-y: auto; }
+
+.sl-scan-row {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 10px 14px;
+	border: 1px solid var(--sl-border);
+	border-radius: var(--sl-radius-control);
+	background: var(--sl-card);
+	cursor: pointer;
+	text-align: start;
+	inline-size: 100%;
+	justify-content: flex-start;
+}
+
+.sl-scan-row:hover { border-color: var(--sl-primary-bright); background: var(--sl-inset); }
+.sl-scan-row.is-selected { border-color: var(--sl-primary-bright); background: var(--sl-primary-soft); }
+.sl-scan-name { font-weight: 700; }
+.sl-scan-meta { font-size: 12px; color: var(--sl-ink-subtle); }
+.sl-scan-signal { margin-inline-start: auto; text-align: end; font-size: 12px; font-weight: 700; }
+
+/* =====================================================================
+ * Header logout
+ * ===================================================================== */
+
+.sl-icon-btn.sl-logout:hover { background: rgba(255, 255, 255, .2); }
+
+/* =====================================================================
+ * Login page
+ *
+ * The backdrop is drawn, not photographed: an inline SVG of masts and a
+ * link mesh. It ships inside the stylesheet, so the login page has no
+ * external request to make and renders the same on a router with no
+ * internet at all.
+ * ===================================================================== */
+
+.sl-login-page {
+	position: relative;
+	min-block-size: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 24px;
+	overflow: hidden;
+	background:
+		radial-gradient(1100px 600px at 50% -10%, rgba(46, 168, 228, .28), transparent 70%),
+		linear-gradient(180deg, #0b2036 0%, #061729 55%, #04101d 100%);
+}
+
+/* mast + mesh layer */
+.sl-login-page::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900' preserveAspectRatio='xMidYMax slice'%3E%3Cg fill='none' stroke='%2384cfff' stroke-opacity='.30' stroke-width='2'%3E%3Cpath d='M180 900 L260 470 L340 900 M205 660 H315 M222 570 H298'/%3E%3Cpath d='M1260 900 L1340 470 L1420 900 M1285 660 H1395 M1302 570 H1378'/%3E%3Cpath d='M690 900 L760 560 L830 900 M712 700 H808 M727 620 H793'/%3E%3C/g%3E%3Cg fill='none' stroke='%232ea8e4' stroke-opacity='.34' stroke-width='2.5'%3E%3Cpath d='M260 430 a70 70 0 0 1 0 -70 M260 400 a40 40 0 0 1 0 -40'/%3E%3Cpath d='M1340 430 a70 70 0 0 0 0 -70 M1340 400 a40 40 0 0 0 0 -40'/%3E%3Cpath d='M760 520 a56 56 0 0 1 0 -56 M760 496 a30 30 0 0 1 0 -30'/%3E%3C/g%3E%3Cg fill='none' stroke='%2384cfff' stroke-opacity='.16' stroke-width='1.2'%3E%3Cpath d='M260 470 L760 560 L1340 470 M260 470 L520 760 L760 560 M760 560 L1080 780 L1340 470 M520 760 L1080 780'/%3E%3C/g%3E%3Cg fill='%2384cfff' fill-opacity='.5'%3E%3Ccircle cx='260' cy='470' r='6'/%3E%3Ccircle cx='760' cy='560' r='6'/%3E%3Ccircle cx='1340' cy='470' r='6'/%3E%3Ccircle cx='520' cy='760' r='5'/%3E%3Ccircle cx='1080' cy='780' r='5'/%3E%3C/g%3E%3Cg fill='%23ffffff' fill-opacity='.10'%3E%3Ccircle cx='140' cy='150' r='2'/%3E%3Ccircle cx='420' cy='90' r='2'/%3E%3Ccircle cx='980' cy='120' r='2'/%3E%3Ccircle cx='1500' cy='200' r='2'/%3E%3Ccircle cx='1180' cy='60' r='2'/%3E%3Ccircle cx='640' cy='180' r='2'/%3E%3C/g%3E%3C/svg%3E");
+	background-position: bottom center;
+	background-size: cover;
+	background-repeat: no-repeat;
+	pointer-events: none;
+}
+
+/* soft ground fade so the card never fights the artwork */
+.sl-login-page::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background: radial-gradient(560px 380px at 50% 50%, rgba(4, 16, 29, .72), transparent 75%);
+	pointer-events: none;
+}
+
+.sl-login-card {
+	position: relative;
+	z-index: 1;
+	inline-size: min(420px, 100%);
+	padding: 32px;
+	border-radius: var(--sl-radius-card);
+	background: rgba(13, 28, 45, .82);
+	border: 1px solid rgba(132, 207, 255, .22);
+	box-shadow: 0 24px 60px rgba(0, 0, 0, .45);
+	backdrop-filter: blur(14px);
+	color: #d4e4fa;
+}
+
+.sl-login-head { text-align: center; margin-block-end: 24px; }
+.sl-login-logo { inline-size: 56px; block-size: 56px; color: #84cfff; }
+.sl-login-head h1 { font-size: 24px; font-weight: 700; margin: 10px 0 6px; color: #ffffff; }
+.sl-login-head p { color: rgba(212, 228, 250, .72); margin: 0; font-size: 14px; }
+
+/* The card is the surface here: LuCI's own map/section chrome must not paint
+   its light card background on top of it. */
+.sl-login-card .cbi-map,
+.sl-login-card .cbi-section,
+.sl-login-card .cbi-section-node,
+.sl-login-card form {
+	background: transparent;
+	border: 0;
+	box-shadow: none;
+	padding: 0;
+	margin: 0;
+}
+
+.sl-login-card .cbi-section-node { display: block; }
+.sl-login-card .cbi-value { display: block; margin-block-end: 16px; }
+.sl-login-card .cbi-value-title { display: block; margin-block-end: 6px; font-weight: 600; color: rgba(212, 228, 250, .9); }
+.sl-login-card .cbi-value-field { inline-size: 100%; }
+
+.sl-login-card input {
+	inline-size: 100%;
+	background: rgba(5, 20, 36, .8);
+	border-color: rgba(132, 207, 255, .25);
+	color: #eaf3ff;
+}
+
+.sl-login-card input:focus { border-color: var(--sl-primary-bright); }
+.sl-login-card .btn { inline-size: 100%; justify-content: center; font-size: 15px; margin-block-start: 8px; }
+.sl-login-card hr { display: none; }
+.sl-login-card .alert-message { margin-block-start: 14px; }
+
+/* The theme footer would sit on the artwork; the login page hides it. */
+body:has(.sl-login-page) .sl-footer { display: none; }
+
+@media screen and (max-width: 560px) {
+	.sl-login-page::before { background-size: 200% auto; }
 }

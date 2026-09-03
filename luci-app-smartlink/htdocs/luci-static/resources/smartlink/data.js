@@ -273,6 +273,152 @@ return baseclass.extend({
 		});
 	},
 
+	/* ------------------------------------------------------------- ports */
+
+	/*
+	 * The physical ethernet ports, in the order a person reads them off the
+	 * back of the box: WAN first, then LAN 1..n.
+	 *
+	 * Field names differ between LuCI releases and between DSA and swconfig
+	 * boards, so every attribute is looked for in more than one place and a
+	 * port with nothing to report still appears - as "down" rather than
+	 * missing, which is the honest reading of "no carrier".
+	 */
+	portsFrom: function(snap) {
+		var devs = snap.devices || {},
+		    out = [];
+
+		Object.keys(devs).forEach(function(name) {
+			if (!/^(wan\d*|lan\d*|eth\d+)$/.test(name))
+				return;
+
+			var d = devs[name] || {},
+			    link = d.link || {},
+			    carrier = (link.carrier !== undefined) ? link.carrier
+			            : (d.carrier !== undefined) ? d.carrier
+			            : !!d.up;
+
+			out.push({
+				name:    name,
+				role:    /^wan/.test(name) ? 'wan' : 'lan',
+				index:   parseInt((name.match(/(\d+)$/) || [])[1] || '0', 10),
+				up:      !!carrier,
+				speed:   link.speed || d.speed || null,
+				duplex:  link.duplex || d.duplex || null,
+				mac:     d.mac || null,
+				rx:      d.stats ? d.stats.rx_bytes : null,
+				tx:      d.stats ? d.stats.tx_bytes : null
+			});
+		});
+
+		out.sort(function(a, b) {
+			if (a.role !== b.role)
+				return (a.role === 'wan') ? -1 : 1;
+
+			return a.index - b.index;
+		});
+
+		return out;
+	},
+
+	/* --------------------------------------------------- operation mode */
+
+	/*
+	 * Which of the four modes the current config represents.
+	 *
+	 * Read from what is actually in uci rather than from a stored marker, so a
+	 * router configured by hand - or by LuCI - still reports the truth.
+	 */
+	detectMode: function(cfg) {
+		var net = cfg.network || {},
+		    dhcp = cfg.dhcp || {},
+		    wireless = cfg.wireless || {};
+
+		var hasStation = Object.keys(wireless).some(function(k) {
+			var s = wireless[k];
+			return s && s['.type'] === 'wifi-iface' && s.mode === 'sta';
+		});
+
+		/* `ports` is a list on DSA and `ifname` a space separated string on
+		   the older layout. Names are compared exactly so that `wwan` -
+		   which WISP mode adds - is never mistaken for the `wan` port. */
+		var lan = net.lan || {},
+		    lanPorts = [].concat(lan.ports || lan.ifname || [])
+		                 .join(' ').split(/\s+/).filter(Boolean),
+		    wanBridged = lanPorts.some(function(port) {
+		        return port === 'wan' || /^wan\d+$/.test(port);
+		    }),
+		    dhcpOff = (dhcp.lan || {}).ignore === '1';
+
+		if (hasStation) {
+			var wwan = net.wwan || {};
+			return (wwan.proto === 'dhcp' || wwan.proto === 'static') ? 'wisp' : 'repeater';
+		}
+
+		if (wanBridged || dhcpOff)
+			return 'ap';
+
+		return 'router';
+	},
+
+	/* Everything the mode page needs, in one round trip. */
+	modeConfig: function() {
+		return ubusBatch([
+			[ 'uci', 'get', { config: 'network' } ],
+			[ 'uci', 'get', { config: 'dhcp' } ],
+			[ 'uci', 'get', { config: 'wireless' } ],
+			[ 'uci', 'get', { config: 'firewall' } ]
+		]).then(function(r) {
+			return {
+				network:  (r[0] || {}).values || {},
+				dhcp:     (r[1] || {}).values || {},
+				wireless: (r[2] || {}).values || {},
+				firewall: (r[3] || {}).values || {}
+			};
+		});
+	},
+
+	/* Neighbouring networks on one radio, for the repeater and WISP modes. */
+	scan: function(ifname) {
+		return ubusBatch([ [ 'iwinfo', 'scan', { device: ifname } ] ]).then(function(r) {
+			var list = (r[0] && r[0].results) || [];
+
+			/* Strongest first, and only one entry per SSID. */
+			var seen = {},
+			    out = [];
+
+			list.sort(function(a, b) { return (b.signal || -100) - (a.signal || -100); });
+
+			list.forEach(function(ap) {
+				var ssid = ap.ssid;
+
+				if (!ssid || seen[ssid])
+					return;
+
+				seen[ssid] = true;
+
+				out.push({
+					ssid:       ssid,
+					bssid:      ap.bssid,
+					signal:     ap.signal,
+					quality:    ap.quality,
+					qualityMax: ap.quality_max || 70,
+					channel:    ap.channel,
+					encryption: ap.encryption || {}
+				});
+			});
+
+			return out;
+		});
+	},
+
+	/* Whether a package is installed, used to gate modes that need one. */
+	hasPackage: function(name) {
+		return ubusBatch([ [ 'file', 'stat', { path: '/usr/lib/opkg/info/' + name + '.control' } ] ])
+			.then(function(r) { return !!(r[0] && r[0].size !== undefined); })
+			.catch(function() { return false; });
+	},
+
 	/* ------------------------------------------------------------ derived */
 
 	pickInterface: function(interfaces, name) {
@@ -490,6 +636,7 @@ return baseclass.extend({
 				lan: lan,
 				radios: radios,
 				clients: self.clientsFrom(snap, radios),
+				ports: self.portsFrom(snap),
 				stats: self.statsFrom(snap, wan.device),
 				complete: false
 			};

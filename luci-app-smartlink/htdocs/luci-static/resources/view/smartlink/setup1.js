@@ -142,7 +142,7 @@ return view.extend({
 							pppoe,
 							fixed,
 							w.actions([
-								w.button({ label: 'رجوع', icon: 'back', href: L.url('smartlink/setup/welcome') }),
+								w.button({ label: 'رجوع', icon: 'back', href: L.url('smartlink/setup') }),
 								E('span', { 'class': 'sl-actions-end' }, [ nextBtn ])
 							])
 						]

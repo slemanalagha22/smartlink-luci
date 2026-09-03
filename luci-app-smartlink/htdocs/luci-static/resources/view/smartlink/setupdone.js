@@ -73,7 +73,7 @@ return view.extend({
 
 					w.actions([
 						w.button({ label: 'الذهاب إلى لوحة التحكم', icon: 'next', variant: 'apply', href: L.url('smartlink/home') }),
-						w.button({ label: 'إعادة الإعداد', icon: 'back', href: L.url('smartlink/setup/welcome') })
+						w.button({ label: 'إعادة الإعداد', icon: 'back', href: L.url('smartlink/setup') })
 					])
 				]
 			})

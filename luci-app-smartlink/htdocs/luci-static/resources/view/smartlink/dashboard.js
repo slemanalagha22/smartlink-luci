@@ -76,6 +76,24 @@ return view.extend({
 			]
 		});
 
+		/* ---- physical ports ---- */
+
+		var portsHolder = E('div', {}),
+		    portsSummary = E('span', { 'class': 'sl-chip sl-accent-lan' }, '—');
+
+		var portsCard = w.card({
+			children: [
+				E('div', { 'style': 'display:flex;align-items:center;justify-content:space-between;gap:12px;margin-block-end:16px;flex-wrap:wrap' }, [
+					E('div', {}, [
+						E('h2', { 'style': 'margin:0' }, 'المنافذ'),
+						E('p', { 'style': 'margin:4px 0 0;color:var(--sl-ink-subtle)' }, 'حالة منافذ الشبكة على الجهاز.')
+					]),
+					portsSummary
+				]),
+				portsHolder
+			]
+		});
+
 		/* ---- tiles ---- */
 
 		var tiles = {
@@ -217,6 +235,22 @@ return view.extend({
 				String(clients.length),
 				clients.length ? 'عرض الأجهزة النشطة والتحكم في الوصول' : 'لا توجد أجهزة متصلة حالياً');
 
+			var ports = snap.ports || [];
+
+			portsHolder.textContent = '';
+
+			if (ports.length) {
+				portsHolder.appendChild(w.ports(ports));
+
+				var linked = ports.filter(function(p) { return p.up; }).length;
+				portsSummary.textContent = '%d من %d متصل'.format(linked, ports.length);
+			}
+			else {
+				portsHolder.appendChild(E('p', { 'class': 'sl-tile-hint' },
+					'لم يبلّغ الجهاز عن منافذ يمكن قراءتها.'));
+				portsSummary.textContent = '—';
+			}
+
 			var rel = (snap.board && snap.board.release) || {};
 			sysFirmware.textContent = rel.description || rel.version || '—';
 			sysUptime.textContent = data.formatUptime(snap.info && snap.info.uptime) || '—';
@@ -250,6 +284,7 @@ return view.extend({
 		return w.page([
 			statusCard,
 			w.grid(4, [ tiles.devices, tiles.wireless, tiles.lan, tiles.internet ]),
+			portsCard,
 			w.grid(3, [ chartCard, sysCard ])
 		]);
 	},
