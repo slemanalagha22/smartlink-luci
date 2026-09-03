@@ -1,0 +1,7 @@
+# Shell scripts and config files run on the router: they must keep LF endings
+# whatever platform they were committed from, or ash refuses them.
+* text=auto eol=lf
+
+*.ipk    binary
+*.woff2  binary
+*.png    binary
