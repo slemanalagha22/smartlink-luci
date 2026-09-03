@@ -1,0 +1,136 @@
+{#
+ SMARTLink theme for LuCI
+ Copyright 2026 Alagha Technology
+ Structure derived from luci-theme-bootstrap
+ Copyright 2008-2022 Jo-Philipp Wich <jo@mein.io>
+ Licensed to the public under the Apache License 2.0.
+-#}
+
+{%
+	import { getuid, getspnam } from 'luci.core';
+
+	const boardinfo = ubus.call('system', 'board');
+
+	/* Languages that must render right-to-left. */
+	const rtl_langs = [ 'ar', 'he', 'fa', 'ur', 'ckb', 'ps', 'sd', 'ug', 'yi' ];
+	const lang = dispatcher.lang ?? 'en';
+	const is_rtl = (index(rtl_langs, replace(lang, /[_-].*$/, '')) >= 0);
+
+	http.prepare_content('text/html; charset=UTF-8');
+-%}
+
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ is_rtl ? 'rtl' : 'ltr' }}">
+	<head>
+		<meta charset="utf-8">
+		<title>{{ striptags(`${boardinfo.hostname ?? '?'}${node ? ` - ${node.title}` : ''}`) }} - SMARTLink</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="theme-color" content="#2ea8e4">
+
+		{#- Resolve the colour scheme before first paint so the page never flashes. -#}
+		<script type="text/javascript">
+			(function () {
+				var root = document.documentElement,
+				    media = window.matchMedia('(prefers-color-scheme: dark)'),
+				    stored = null;
+
+				try { stored = localStorage.getItem('smartlink.theme'); } catch (e) {}
+
+				function apply() {
+					var dark = (stored === 'dark') || (stored !== 'light' && media.matches);
+					root.setAttribute('data-darkmode', dark ? 'true' : 'false');
+					root.setAttribute('data-theme-pref', stored || 'auto');
+				}
+
+				media.addEventListener('change', function () { if (!stored) apply(); });
+				window.smartlinkApplyTheme = function (pref) {
+					stored = (pref === 'auto') ? null : pref;
+					try {
+						if (stored) localStorage.setItem('smartlink.theme', stored);
+						else localStorage.removeItem('smartlink.theme');
+					} catch (e) {}
+					apply();
+				};
+
+				apply();
+			})();
+		</script>
+
+		<link rel="stylesheet" href="{{ media }}/cascade.css">
+		<link rel="stylesheet" media="only screen and (max-device-width: 854px)" href="{{ media }}/mobile.css" type="text/css">
+		<link rel="icon" href="{{ media }}/favicon.svg" type="image/svg+xml">
+		<link rel="shortcut icon" href="{{ media }}/favicon.png">
+		{% if (node?.css): %}
+		<link rel="stylesheet" href="{{ resource }}/{{ node.css }}">
+		{% endif %}
+		{% if (css): %}
+		<style title="text/css">{{ css }}</style>
+		{% endif %}
+		<script src="{{ dispatcher.build_url('admin/translations', lang) }}"></script>
+		<script src="{{ resource }}/cbi.js"></script>
+	</head>
+
+	<body class="lang_{{ lang }} {{ entityencode(striptags(node?.title ?? ''), true) }}" data-page="{{ entityencode(join('-', ctx.request_path), true) }}">
+		{% if (!blank_page): %}
+		<header class="sl-header">
+			<div class="sl-header-inner">
+				<a class="brand" href="{{ dispatcher.build_url('admin') }}">
+					<svg class="sl-logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+						<rect x="1" y="1" width="30" height="30" rx="8" fill="currentColor" opacity=".16"/>
+						<path d="M20.8 10.4a6.6 6.6 0 0 0-4.9-2 6.6 6.6 0 0 0-4.7 1.9c-.6.6-.6 1.5 0 2.1.6.6 1.5.6 2.1 0a3.7 3.7 0 0 1 2.6-1c1 0 1.9.4 2.7 1.1.6.6 1.5.5 2.1-.1.6-.6.6-1.4.1-2Zm3.4-3.5A11.4 11.4 0 0 0 16 3.6c-3 0-5.9 1.2-8.1 3.3-.6.6-.6 1.5 0 2.1.6.6 1.5.6 2.1 0A8.4 8.4 0 0 1 16 6.6c2.2 0 4.3.8 5.9 2.3.6.6 1.6.6 2.2 0 .6-.6.6-1.5.1-2Zm-8.2 8.7a3.6 3.6 0 0 0-3.6 3.6c0 .9.3 1.7.9 2.4l2.7 3.2 2.7-3.2c.6-.7.9-1.5.9-2.4a3.6 3.6 0 0 0-3.6-3.6Z" fill="currentColor"/>
+					</svg>
+					{#- Product name, not the hostname: this is a vendor interface. The
+					    hostname stays available beside it for anyone managing several units. -#}
+					<span class="sl-brand-text">SMARTLink</span>
+					<span class="sl-brand-host">{{ striptags(boardinfo.hostname ?? '') }}</span>
+				</a>
+
+				<ul class="nav" id="topmenu" style="display:none"></ul>
+
+				<div class="sl-header-actions">
+					{#- Mode switcher: SMARTLink's own pages vs LuCI administration. -#}
+					<ul class="breadcrumb" id="modemenu" style="display:none"></ul>
+					<div id="indicators" class="pull-right"></div>
+					<button type="button" class="sl-icon-btn sl-theme-toggle" id="sl-theme-toggle"
+					        title="{{ _('Toggle colour scheme') }}" aria-label="{{ _('Toggle colour scheme') }}">
+						<svg class="sl-ico sl-ico-sun" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-360q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35Zm0 60q-75 0-127.5-52.5T300-480q0-75 52.5-127.5T480-660q75 0 127.5 52.5T660-480q0 75-52.5 127.5T480-300ZM200-450H40v-60h160v60Zm720 0H760v-60h160v60ZM450-760v-160h60v160h-60Zm0 720v-160h60v160h-60ZM260-655l-101-97 43-44 96 100-38 41Zm441 442-97-101 41-39 99 97-43 43Zm-97-442 97-101 43 41-100 99-40-39ZM254-212l-42-44 98-96 22 19 20 21-98 100Z"/></svg>
+						<svg class="sl-ico sl-ico-moon" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-120q-150 0-255-105T120-480q0-150 105-255t255-105q8 0 17 .5t23 1.5q-36 32-56 79t-20 99q0 90 63 153t153 63q52 0 99-18.5t79-51.5q1 12 1.5 19.5t.5 14.5q0 150-105 255T480-120Zm0-60q109 0 190-67.5T769-406q-25 11-53.5 16.5T660-384q-115 0-195.5-80.5T384-660q0-24 5-51.5t18-62.5q-98 27-162.5 109.5T180-480q0 125 87.5 212.5T480-180Zm-4-297Z"/></svg>
+					</button>
+					<button type="button" class="sl-icon-btn sl-menu-toggle" id="sl-menu-toggle"
+					        title="{{ _('Menu') }}" aria-label="{{ _('Menu') }}" aria-expanded="false">
+						<svg class="sl-ico" viewBox="0 -960 960 960" aria-hidden="true"><path d="M120-240v-60h720v60H120Zm0-210v-60h720v60H120Zm0-210v-60h720v60H120Z"/></svg>
+					</button>
+				</div>
+			</div>
+		</header>
+
+		<div id="maincontent" class="container">
+			{% if (getuid() == 0 && getspnam('root')?.pwdp === ''): %}
+				<div class="alert-message warning">
+					<h4>{{ _('No password set!') }}</h4>
+					<p>{{ _('There is no password set on this router. Please configure a root password to protect the web interface.') }}</p>
+					{% if (dispatcher.lookup("admin/system/admin")): %}
+					  <div class="right"><a class="btn" href="{{ dispatcher.build_url("admin/system/admin") }}">{{ _('Go to password configuration...') }}</a></div>
+					{% endif %}
+				</div>
+			{% endif %}
+
+			{% if (boardinfo.rootfs_type == "initramfs"): %}
+				<div class="alert-message warning">
+					<h4>{{ _('System running in recovery (initramfs) mode.') }}</h4>
+					<p>{{ _('No changes to settings will be stored and are lost after rebooting. This mode should only be used to install a firmware upgrade') }}</p>
+					{% if (dispatcher.lookup("admin/system/flash")): %}
+					  <div class="right"><a class="btn" href="{{ dispatcher.build_url("admin/system/flash") }}">{{ _('Go to firmware upgrade...') }}</a></div>
+					{% endif %}
+				</div>
+			{% endif %}
+
+			<noscript>
+				<div class="alert-message warning">
+					<h4>{{ _('JavaScript required!') }}</h4>
+					<p>{{ _('You must enable JavaScript in your browser or LuCI will not work properly.') }}</p>
+				</div>
+			</noscript>
+
+			<div id="tabmenu" style="display:none"></div>
+		{% endif %}

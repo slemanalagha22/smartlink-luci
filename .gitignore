@@ -1,0 +1,6 @@
+# Build output — the installable copies live in packages/
+dist/
+
+# Local preview harnesses, not part of the shipped packages
+preview/
+.claude/

@@ -1,0 +1,106 @@
+{
+	"luci-app-smartlink": {
+		"description": "Grant access to the SMARTLink interface",
+		"read": {
+			"uci": [
+				"network",
+				"wireless",
+				"dhcp",
+				"firewall",
+				"system"
+			],
+			"ubus": {
+				"system": [
+					"board",
+					"info"
+				],
+				"luci-rpc": [
+					"getDHCPLeases",
+					"getHostHints",
+					"getNetworkDevices",
+					"getWirelessDevices"
+				],
+				"network.interface": [
+					"dump",
+					"status"
+				],
+				"network.device": [
+					"status"
+				],
+				"network.wireless": [
+					"status"
+				],
+				"iwinfo": [
+					"assoclist",
+					"info",
+					"devices"
+				],
+				"uci": [
+					"get",
+					"changes"
+				],
+				"file": [
+					"read",
+					"exec"
+				]
+			},
+			"file": {
+				"/sys/class/thermal/thermal_zone0/temp": [
+					"read"
+				],
+				"/sys/class/hwmon/hwmon0/temp1_input": [
+					"read"
+				],
+				"/sys/class/hwmon/hwmon1/temp1_input": [
+					"read"
+				],
+				"/sbin/logread": [
+					"exec"
+				]
+			}
+		},
+		"write": {
+			"uci": [
+				"network",
+				"wireless",
+				"dhcp",
+				"firewall"
+			],
+			"ubus": {
+				"system": [
+					"reboot"
+				],
+				"uci": [
+					"set",
+					"add",
+					"delete",
+					"commit",
+					"revert",
+					"apply",
+					"confirm",
+					"rollback"
+				],
+				"network": [
+					"reload",
+					"restart"
+				],
+				"network.wireless": [
+					"up",
+					"down",
+					"reconf"
+				],
+				"file": [
+					"exec"
+				]
+			},
+			"file": {
+				"/etc/init.d/firewall": [
+					"exec"
+				],
+				"/etc/init.d/network": [
+					"exec"
+				]
+			}
+		}
+	}
+}

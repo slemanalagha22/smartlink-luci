@@ -1,0 +1,53 @@
+/*!
+ * SMARTLink theme for LuCI - small-device refinements.
+ * Loaded by header.ut with media="only screen and (max-device-width: 854px)".
+ * The bulk of the responsive work lives in cascade.css; this file only tunes
+ * things that depend on the device rather than the viewport.
+ */
+
+:root {
+	--sl-margin: 16px;
+	--sl-gutter: 16px;
+}
+
+/* Comfortable touch targets */
+.btn,
+.cbi-button,
+button,
+input[type="text"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+select,
+.cbi-dropdown {
+	min-block-size: 44px;
+}
+
+.sl-icon-btn { inline-size: 40px; block-size: 40px; }
+
+/* Keep iOS from zooming when a field receives focus. */
+input,
+select,
+textarea { font-size: 16px; }
+
+/* Wide tables scroll inside their card instead of stretching the page. */
+.cbi-section > .table,
+.cbi-section > .cbi-section-node > .table {
+	display: block;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+	white-space: nowrap;
+}
+
+/* The sticky header costs too much room on short screens. */
+.sl-header { position: static; }
+
+.cbi-page-actions {
+	flex-direction: column;
+	align-items: stretch;
+}
+
+.cbi-page-actions .secondary-action { margin-inline-start: 0; }
+
+.modal-overlay { padding: 12px; align-items: flex-start; }
+.modal { max-block-size: none; }

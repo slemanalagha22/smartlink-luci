@@ -1,0 +1,33 @@
+{#
+ SMARTLink theme for LuCI
+ Copyright 2026 Alagha Technology
+ Licensed to the public under the Apache License 2.0.
+-#}
+
+		{% if (!blank_page): %}
+		</div>
+
+		<footer class="sl-footer">
+			<div class="sl-footer-inner">
+				<span class="sl-footer-meta">
+					<a href="https://github.com/openwrt/luci" target="_blank" rel="noreferrer">
+						{{ version.luciname }} ({{ version.luciversion }})</a>
+					<span class="sl-sep">/</span>
+					<a href="{{ entityencode(version.disturl ?? '#', true) }}" target="_blank" rel="noreferrer">
+						{{ version.distname }} {{ version.distversion }} ({{ version.distrevision }})</a>
+					{% if (lua_active): %}
+						<span class="sl-sep">/</span> {{ _('Lua compatibility mode active') }}
+					{% endif %}
+				</span>
+
+				<span class="sl-footer-brand">
+					<span class="sl-footer-badge" aria-hidden="true">S</span>
+					<span>Alagha Technology</span>
+				</span>
+			</div>
+		</footer>
+
+		<script type="text/javascript">L.require('menu-smartlink')</script>
+		{% endif %}
+	</body>
+</html>
