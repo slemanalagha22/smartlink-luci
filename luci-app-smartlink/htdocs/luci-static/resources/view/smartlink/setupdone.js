@@ -1,6 +1,7 @@
 'use strict';
 'require view';
 'require smartlink.data as data';
+'require smartlink.modes as modes';
 'require smartlink.widgets as w';
 
 /*
@@ -10,7 +11,7 @@
  * the summary reflects what the router actually ended up with.
  */
 
-var STEPS = [ 'الترحيب', 'الإنترنت', 'الشبكة اللاسلكية', 'اكتمل' ];
+var STEPS = [ 'الترحيب', 'وضع التشغيل', 'الاتصال', 'الشبكة اللاسلكية', 'اكتمل' ];
 
 return view.extend({
 	load: function() {
@@ -18,6 +19,9 @@ return view.extend({
 	},
 
 	render: function(snap) {
+		/* The run is over; a later visit should start from the live config. */
+		modes.forgetChoice();
+
 		var wan = snap.wan || {},
 		    lan = snap.lan || {},
 		    radios = (snap.radios || []).filter(function(r) { return r.up; }),
@@ -58,7 +62,7 @@ return view.extend({
 			}));
 
 		return w.page([
-			w.steps(STEPS, 3),
+			w.steps(STEPS, 4),
 
 			w.card({
 				children: [

@@ -49,12 +49,6 @@ return view.extend({
 			})
 		];
 
-		tiles.push(w.tile({
-			accent: 'primary', icon: 'bridge', title: 'وضع التشغيل',
-			value: '', hint: 'راوتر · نقطة وصول · WISP · مقوي إشارة',
-			href: L.url('smartlink/network/mode')
-		}));
-
 		var advanced = [
 			[ 'shield', 'جدار الحماية', 'قواعد الحماية والمناطق', L.url('admin/network/firewall') ],
 			[ 'link',   'توجيه المنافذ', 'فتح منفذ لجهاز داخلي', L.url('admin/network/firewall/forwards') ],

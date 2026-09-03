@@ -2,94 +2,195 @@
 	"smartlink": {
 		"title": "SMARTLink",
 		"order": 5,
-		"action": { "type": "firstchild", "recurse": true },
+		"action": {
+			"type": "firstchild",
+			"recurse": true
+		},
 		"auth": {
-			"methods": [ "cookie:sysauth_https", "cookie:sysauth_http" ],
+			"methods": [
+				"cookie:sysauth_https",
+				"cookie:sysauth_http"
+			],
 			"login": true
 		},
-		"depends": { "acl": [ "luci-app-smartlink" ] }
+		"depends": {
+			"acl": [
+				"luci-app-smartlink"
+			]
+		}
 	},
-
 	"smartlink/home": {
 		"title": "الرئيسية",
 		"order": 10,
-		"action": { "type": "view", "path": "smartlink/dashboard" },
-		"depends": { "acl": [ "luci-app-smartlink" ] }
+		"action": {
+			"type": "view",
+			"path": "smartlink/dashboard"
+		},
+		"depends": {
+			"acl": [
+				"luci-app-smartlink"
+			]
+		}
 	},
-
 	"smartlink/setup": {
 		"title": "الإعداد السريع",
 		"order": 15,
-		"action": { "type": "view", "path": "smartlink/welcome" },
-		"depends": { "acl": [ "luci-app-smartlink" ] }
+		"action": {
+			"type": "view",
+			"path": "smartlink/welcome"
+		},
+		"depends": {
+			"acl": [
+				"luci-app-smartlink"
+			]
+		}
+	},
+	"smartlink/setup/mode": {
+		"action": {
+			"type": "view",
+			"path": "smartlink/setupmode"
+		},
+		"depends": {
+			"acl": [
+				"luci-app-smartlink"
+			]
+		}
 	},
 	"smartlink/setup/step1": {
-		"action": { "type": "view", "path": "smartlink/setup1" },
-		"depends": { "acl": [ "luci-app-smartlink" ] }
+		"action": {
+			"type": "view",
+			"path": "smartlink/setup1"
+		},
+		"depends": {
+			"acl": [
+				"luci-app-smartlink"
+			]
+		}
 	},
 	"smartlink/setup/step2": {
-		"action": { "type": "view", "path": "smartlink/setup2" },
-		"depends": { "acl": [ "luci-app-smartlink" ] }
+		"action": {
+			"type": "view",
+			"path": "smartlink/setup2"
+		},
+		"depends": {
+			"acl": [
+				"luci-app-smartlink"
+			]
+		}
 	},
 	"smartlink/setup/done": {
-		"action": { "type": "view", "path": "smartlink/setupdone" },
-		"depends": { "acl": [ "luci-app-smartlink" ] }
+		"action": {
+			"type": "view",
+			"path": "smartlink/setupdone"
+		},
+		"depends": {
+			"acl": [
+				"luci-app-smartlink"
+			]
+		}
 	},
-
 	"smartlink/network": {
 		"title": "الشبكة",
 		"order": 20,
-		"action": { "type": "firstchild", "recurse": true },
-		"depends": { "acl": [ "luci-app-smartlink" ] }
+		"action": {
+			"type": "firstchild",
+			"recurse": true
+		},
+		"depends": {
+			"acl": [
+				"luci-app-smartlink"
+			]
+		}
 	},
 	"smartlink/network/overview": {
 		"title": "نظرة عامة",
 		"order": 10,
-		"action": { "type": "view", "path": "smartlink/network" },
-		"depends": { "acl": [ "luci-app-smartlink" ] }
+		"action": {
+			"type": "view",
+			"path": "smartlink/network"
+		},
+		"depends": {
+			"acl": [
+				"luci-app-smartlink"
+			]
+		}
 	},
 	"smartlink/network/devices": {
 		"title": "الأجهزة المتصلة",
 		"order": 20,
-		"action": { "type": "view", "path": "smartlink/devices" },
-		"depends": { "acl": [ "luci-app-smartlink" ] }
+		"action": {
+			"type": "view",
+			"path": "smartlink/devices"
+		},
+		"depends": {
+			"acl": [
+				"luci-app-smartlink"
+			]
+		}
 	},
 	"smartlink/network/wireless": {
 		"title": "الشبكة اللاسلكية",
 		"order": 30,
-		"action": { "type": "view", "path": "smartlink/wireless" },
-		"depends": { "acl": [ "luci-app-smartlink" ] }
+		"action": {
+			"type": "view",
+			"path": "smartlink/wireless"
+		},
+		"depends": {
+			"acl": [
+				"luci-app-smartlink"
+			]
+		}
 	},
 	"smartlink/network/lan": {
 		"title": "الشبكة المحلية",
 		"order": 40,
-		"action": { "type": "view", "path": "smartlink/lan" },
-		"depends": { "acl": [ "luci-app-smartlink" ] }
+		"action": {
+			"type": "view",
+			"path": "smartlink/lan"
+		},
+		"depends": {
+			"acl": [
+				"luci-app-smartlink"
+			]
+		}
 	},
 	"smartlink/network/internet": {
 		"title": "الإنترنت",
 		"order": 50,
-		"action": { "type": "view", "path": "smartlink/internet" },
-		"depends": { "acl": [ "luci-app-smartlink" ] }
+		"action": {
+			"type": "view",
+			"path": "smartlink/internet"
+		},
+		"depends": {
+			"acl": [
+				"luci-app-smartlink"
+			]
+		}
 	},
-	"smartlink/network/mode": {
-		"title": "وضع التشغيل",
-		"order": 60,
-		"action": { "type": "view", "path": "smartlink/mode" },
-		"depends": { "acl": [ "luci-app-smartlink" ] }
-	},
-
 	"smartlink/app": {
 		"title": "التطبيق",
 		"order": 30,
-		"action": { "type": "view", "path": "smartlink/application" },
-		"depends": { "acl": [ "luci-app-smartlink" ] }
+		"action": {
+			"type": "view",
+			"path": "smartlink/application"
+		},
+		"depends": {
+			"acl": [
+				"luci-app-smartlink"
+			]
+		}
 	},
-
 	"smartlink/tools": {
 		"title": "الأدوات",
 		"order": 40,
-		"action": { "type": "view", "path": "smartlink/tools" },
-		"depends": { "acl": [ "luci-app-smartlink" ] }
+		"action": {
+			"type": "view",
+			"path": "smartlink/tools"
+		},
+		"depends": {
+			"acl": [
+				"luci-app-smartlink"
+			]
+		}
 	}
 }

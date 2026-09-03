@@ -12,7 +12,7 @@
  * the wizard a second time does not have to retype a password they cannot see.
  */
 
-var STEPS = [ 'الترحيب', 'الإنترنت', 'الشبكة اللاسلكية', 'اكتمل' ];
+var STEPS = [ 'الترحيب', 'وضع التشغيل', 'الاتصال', 'الشبكة اللاسلكية', 'اكتمل' ];
 
 var ENCRYPTIONS = [
 	[ 'psk2',      'WPA2-PSK (موصى به)' ],
@@ -35,7 +35,7 @@ return view.extend({
 
 		if (!radios.length) {
 			return w.page([
-				w.steps(STEPS, 2),
+				w.steps(STEPS, 3),
 				w.note({ kind: 'warn', title: 'لا توجد واجهة لاسلكية', text: 'لم يبلّغ الجهاز عن أي راديو يمكن ضبطه.' }),
 				w.card({ children: [ w.actions([
 					w.button({ label: 'متابعة', icon: 'next', variant: 'apply', href: L.url('smartlink/setup/done') })
@@ -157,12 +157,12 @@ return view.extend({
 		});
 
 		return w.page([
-			w.steps(STEPS, 2),
+			w.steps(STEPS, 3),
 
 			w.head({
 				icon: 'wifi',
 				accent: 'wireless',
-				title: 'الخطوة 2 — الشبكة اللاسلكية',
+				title: 'الخطوة 3 — الشبكة اللاسلكية',
 				subtitle: 'اختر اسماً تتعرّف عليه أجهزتك وكلمة مرور قوية.'
 			}),
 
