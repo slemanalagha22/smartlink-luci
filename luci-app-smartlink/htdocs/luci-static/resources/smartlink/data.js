@@ -259,7 +259,8 @@ return baseclass.extend({
 			[ 'luci-rpc',          'getWirelessDevices' ],
 			[ 'luci-rpc',          'getDHCPLeases' ],
 			[ 'luci-rpc',          'getHostHints' ],
-			[ 'luci-rpc',          'getNetworkDevices' ]
+			[ 'luci-rpc',          'getNetworkDevices' ],
+			[ 'luci',              'getBuiltinEthernetPorts' ]
 		]).then(function(r) {
 			return {
 				board:      r[0] || {},
@@ -268,7 +269,8 @@ return baseclass.extend({
 				wireless:   r[3] || {},
 				leases:     r[4] || {},
 				hints:      r[5] || {},
-				devices:    r[6] || {}
+				devices:    r[6] || {},
+				builtin:    (r[7] && r[7].result) || null
 			};
 		});
 	},
@@ -288,28 +290,55 @@ return baseclass.extend({
 		var devs = snap.devices || {},
 		    out = [];
 
-		Object.keys(devs).forEach(function(name) {
-			if (!/^(wan\d*|lan\d*|eth\d+)$/.test(name))
-				return;
-
+		function describe(name, role) {
 			var d = devs[name] || {},
 			    link = d.link || {},
 			    carrier = (link.carrier !== undefined) ? link.carrier
 			            : (d.carrier !== undefined) ? d.carrier
-			            : !!d.up;
+			            : !!d.up,
+			    speed = link.speed || d.speed || null;
 
-			out.push({
-				name:    name,
-				role:    /^wan/.test(name) ? 'wan' : 'lan',
-				index:   parseInt((name.match(/(\d+)$/) || [])[1] || '0', 10),
-				up:      !!carrier,
-				speed:   link.speed || d.speed || null,
-				duplex:  link.duplex || d.duplex || null,
-				mac:     d.mac || null,
-				rx:      d.stats ? d.stats.rx_bytes : null,
-				tx:      d.stats ? d.stats.tx_bytes : null
+			return {
+				name:   name,
+				role:   role,
+				index:  parseInt((name.match(/(\d+)$/) || [])[1] || '0', 10),
+				up:     !!carrier,
+				/* netifd reports -1 for "no link"; that is not a speed. */
+				speed:  (speed > 0) ? speed : null,
+				duplex: link.duplex || d.duplex || null,
+				mac:    d.mac || null,
+				rx:     d.stats ? d.stats.rx_bytes : null,
+				tx:     d.stats ? d.stats.tx_bytes : null
+			};
+		}
+
+		/*
+		 * The board tells us which sockets actually exist. Deriving the list
+		 * from the device table instead would include the DSA conduit (eth0
+		 * here), which is the CPU's own link and not a port anyone can plug
+		 * a cable into.
+		 */
+		if (Array.isArray(snap.builtin) && snap.builtin.length) {
+			snap.builtin.forEach(function(port) {
+				if (port && port.device)
+					out.push(describe(port.device, port.role === 'wan' ? 'wan' : 'lan'));
 			});
-		});
+		}
+		else {
+			/* Older LuCI has no port list: fall back to naming conventions,
+			   and skip anything that is not a switch port or the wan jack. */
+			Object.keys(devs).forEach(function(name) {
+				var d = devs[name] || {};
+
+				if (!/^(wan\d*|lan\d+)$/.test(name))
+					return;
+
+				if (name.indexOf('lan') === 0 && d.devtype && d.devtype !== 'dsa')
+					return;
+
+				out.push(describe(name, /^wan/.test(name) ? 'wan' : 'lan'));
+			});
+		}
 
 		out.sort(function(a, b) {
 			if (a.role !== b.role)

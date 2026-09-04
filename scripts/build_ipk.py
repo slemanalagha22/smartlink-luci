@@ -21,7 +21,7 @@ import time
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DIST = ROOT / "dist"
 
-VERSION = "1.0.0-1"
+VERSION = "1.1.2-1"
 MAINTAINER = "Alagha Technology"
 
 THEME_POSTINST = """#!/bin/sh
@@ -40,6 +40,11 @@ exit 0
 
 THEME_POSTRM = """#!/bin/sh
 [ -n "${IPKG_INSTROOT}" ] && exit 0
+
+# opkg runs the OLD package's postrm during an upgrade. Without this
+# guard every update would switch the user off the theme and drop its
+# registration, which is not what "remove" means here.
+[ "$PKG_UPGRADE" = "1" ] && exit 0
 
 # Fall back to a theme that is still installed.
 if [ "$(uci -q get luci.main.mediaurlbase)" = "/luci-static/smartlink" ]; then
@@ -68,6 +73,11 @@ exit 0
 
 APP_POSTRM = """#!/bin/sh
 [ -n "${IPKG_INSTROOT}" ] && exit 0
+
+# opkg runs the OLD package's postrm during an upgrade. Without this
+# guard every update would switch the user off the theme and drop its
+# registration, which is not what "remove" means here.
+[ "$PKG_UPGRADE" = "1" ] && exit 0
 
 rm -f /tmp/luci-indexcache* 2>/dev/null
 /etc/init.d/rpcd reload >/dev/null 2>&1

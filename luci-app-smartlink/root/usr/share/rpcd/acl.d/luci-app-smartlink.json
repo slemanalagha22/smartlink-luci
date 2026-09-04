@@ -44,6 +44,10 @@
 					"read",
 					"exec",
 					"stat"
+				],
+				"luci": [
+					"getBuiltinEthernetPorts",
+					"getBoardJSON"
 				]
 			},
 			"file": {
