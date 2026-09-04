@@ -40,7 +40,14 @@ var ICONS = {
 	restart:   'M451-122q-123-10-207-101t-84-216q0-77 35.5-145T295-695l43 43q-56 33-87 90.5T220-439q0 100 66 173t165 84v60Zm60 0v-60q100-12 165-84.5T741-439q0-109-75.5-184.5T481-699h-20l60 60-43 43-133-133 133-133 43 43-60 60h20q134 0 227 93.5T801-439q0 125-83.5 216T511-122Z',
 	upgrade:   'M440-160v-326L336-382l-56-58 200-200 200 200-56 58-104-104v326h-80ZM160-680v-40q0-33 23.5-56.5T240-800h480q33 0 56.5 23.5T800-720v40h-80v-40H240v40h-80Z',
 	logs:      'M320-240h320v-80H320v80Zm0-160h320v-80H320v80ZM240-80q-33 0-56.5-23.5T160-160v-640q0-33 23.5-56.5T240-880h320l240 240v480q0 33-23.5 56.5T720-80H240Zm280-520v-200H240v640h480v-440H520Z',
-	port:      'M160-160q-33 0-56.5-23.5T80-240v-240q0-33 23.5-56.5T160-560h80v-120q0-33 23.5-56.5T320-760h320q33 0 56.5 23.5T720-680v120h80q33 0 56.5 23.5T880-480v240q0 33-23.5 56.5T800-160H160Zm140-400h360v-120H300v120Zm-140 80v240h640v-240H160Zm120 160h80v-80h-80v80Zm140 0h80v-80h-80v80Zm140 0h80v-80h-80v80Z',
+	/* A real RJ45 jack: body, contact pins along the top, keyed tab below.
+	   Needs even-odd winding so the pins read through the opening. */
+	port: {
+		rule: 'evenodd',
+		d: 'M200-800h560q17 0 28.5 11.5T800-760v420q0 17-11.5 28.5T760-300H640v100q0 17-11.5 28.5T600-160H360q-17 0-28.5-11.5T320-200v-100H200q-17 0-28.5-11.5T160-340v-420q0-17 11.5-28.5T200-800Z'
+		   + 'M255-745v405h120q17 0 28.5 11.5T415-300v100h130v-100q0-17 11.5-28.5T585-340h120v-405H255Z'
+		   + 'M288-712v92h40v-92h-40Zm70 0v92h40v-92h-40Zm70 0v92h40v-92h-40Zm70 0v92h40v-92h-40Zm70 0v92h40v-92h-40Zm70 0v92h40v-92h-40Z'
+	},
 	bridge:    'M120-160v-80h180v-200q0-83 58.5-141.5T500-640h60v-160h280v240H560v-40h-60q-50 0-85 35t-35 85v200h180v80H120Z',
 	logout:    'M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h280v80H200Zm440-160-56-58 102-102H360v-80h326L584-622l56-58 200 200-200 200Z',
 	repeater:  'M480-80q-17 0-28.5-11.5T440-120v-320q0-17 11.5-28.5T480-480q17 0 28.5 11.5T520-440v320q0 17-11.5 28.5T480-80ZM254-546l-84-86q59-59 138-93.5T480-760q93 0 172 35t138 94l-84 85q-44-44-102-69.5T480-641q-66 0-124 25.5T254-546ZM84-716 0-802q92-94 215-146t265-52q142 0 265 52t215 146l-84 86q-77-77-178-120.5T480-880q-117 0-218 43.5T84-716Zm396 396q-33 0-56.5-23.5T400-400q0-33 23.5-56.5T480-480q33 0 56.5 23.5T560-400q0 33-23.5 56.5T480-320Z'
@@ -53,11 +60,18 @@ var ICONS = {
  * display:contents so it never affects layout.
  */
 function svg(name) {
-	var path = ICONS[name] || ICONS.info,
+	var icon = ICONS[name] || ICONS.info,
 	    holder = E('span', { 'class': 'sl-ico', 'style': 'display:contents' });
 
+	/* Most icons are a bare path string. One that needs even-odd winding -
+	   because it draws holes the default rule would fill - is declared as
+	   { d, rule } instead. */
+	var d = (typeof icon === 'string') ? icon : icon.d,
+	    rule = (typeof icon === 'string') ? '' : ' fill-rule="' + icon.rule + '"';
+
 	holder.innerHTML = '<svg viewBox="0 -960 960 960" aria-hidden="true" ' +
-	                   'xmlns="http://www.w3.org/2000/svg"><path d="' + path + '"/></svg>';
+	                   'xmlns="http://www.w3.org/2000/svg"><path' + rule +
+	                   ' d="' + d + '"/></svg>';
 
 	return holder;
 }

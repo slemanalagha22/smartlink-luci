@@ -21,7 +21,7 @@ import time
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DIST = ROOT / "dist"
 
-VERSION = "1.2.3-1"
+VERSION = "1.2.4-1"
 MAINTAINER = "Alagha Technology"
 
 THEME_POSTINST = """#!/bin/sh
