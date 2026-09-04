@@ -10,11 +10,15 @@ packages, the same shape Argon ships in.
 ## Install on a router (one command)
 
 ```sh
-wget -O - https://raw.githubusercontent.com/slemanalagha22/smartlink-luci/main/install.sh | sh
+wget -O - https://cdn.jsdelivr.net/gh/slemanalagha22/smartlink-luci@main/install.sh | sh
 ```
 
-Then open `http://<router-ip>/cgi-bin/luci/` — SMARTLink is already the active
+Then open `http://<router-ip>/cgi-bin/luci/` - SMARTLink is already the active
 theme and the default landing page.
+
+The installer pulls the packages from jsDelivr first and falls back to
+raw.githubusercontent.com. Both mirror this repository; raw is unreachable on
+some networks, which is why neither is relied on alone.
 
 If the router's `wget` cannot verify certificates yet:
 
@@ -22,14 +26,37 @@ If the router's `wget` cannot verify certificates yet:
 opkg update && opkg install ca-bundle
 ```
 
+### Install from a machine on the LAN
+
+When the router has no internet of its own, serve this repository from a
+machine that does and point the installer at it:
+
+```sh
+# on the machine, from the repository root
+python -m http.server 8899
+
+# on the router
+wget -O /tmp/i.sh http://<machine-ip>:8899/install.sh
+SMARTLINK_BASE=http://<machine-ip>:8899/packages sh /tmp/i.sh
+```
+
+### Install without ssh
+
+If the router refuses ssh but its web interface still answers, install over the
+LuCI session instead - no key or account is added to the router:
+
+```sh
+python scripts/deploy_ubus.py <router-ip> [root-password]
+```
+
 ### Or install the packages by hand
 
 ```sh
 cd /tmp
-B=https://raw.githubusercontent.com/slemanalagha22/smartlink-luci/main/packages
-wget $B/luci-theme-smartlink_1.2.4-1_all.ipk
-wget $B/luci-app-smartlink_1.2.4-1_all.ipk
-opkg install luci-theme-smartlink_1.2.4-1_all.ipk luci-app-smartlink_1.2.4-1_all.ipk
+B=https://cdn.jsdelivr.net/gh/slemanalagha22/smartlink-luci@main/packages
+wget $B/luci-theme-smartlink_1.2.5-1_all.ipk
+wget $B/luci-app-smartlink_1.2.5-1_all.ipk
+opkg install luci-theme-smartlink_1.2.5-1_all.ipk luci-app-smartlink_1.2.5-1_all.ipk
 ```
 
 ### Remove

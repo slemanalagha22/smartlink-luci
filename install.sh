@@ -2,17 +2,31 @@
 #
 # SMARTLink for OpenWrt - one-command installer.
 #
-#   wget -O - https://raw.githubusercontent.com/slemanalagha22/smartlink-luci/main/install.sh | sh
+#   wget -O - https://cdn.jsdelivr.net/gh/slemanalagha22/smartlink-luci@main/install.sh | sh
 #
 # Downloads both packages and installs them. Safe to re-run: opkg upgrades in
 # place, and the theme keeps whatever colour scheme the browser had chosen.
 
 set -e
 
-# Overridable so the packages can be served from a local mirror or a build
-# machine on the LAN - useful when the router has no internet yet.
-REPO_RAW="${SMARTLINK_BASE:-https://raw.githubusercontent.com/slemanalagha22/smartlink-luci/main/packages}"
-VERSION="1.2.4-1"
+# Where to fetch the packages from, tried in order.
+#
+# raw.githubusercontent.com is unreachable on a number of networks - it is
+# resolved but never answers - so the script does not depend on any single
+# host. jsDelivr mirrors the same repository and is reachable where raw is
+# not; both are tried before giving up.
+#
+# SMARTLINK_BASE overrides the list entirely, for a local mirror or a build
+# machine on the LAN when the router has no internet yet.
+REPO="slemanalagha22/smartlink-luci"
+
+if [ -n "$SMARTLINK_BASE" ]; then
+	MIRRORS="$SMARTLINK_BASE"
+else
+	MIRRORS="https://cdn.jsdelivr.net/gh/$REPO@main/packages
+https://raw.githubusercontent.com/$REPO/main/packages"
+fi
+VERSION="1.2.5-1"
 TMP="/tmp/smartlink-install"
 
 THEME="luci-theme-smartlink_${VERSION}_all.ipk"
@@ -36,26 +50,42 @@ fi
 mkdir -p "$TMP"
 cd "$TMP"
 
-fetch() {
+# One attempt at one URL, with the fallbacks a stock image needs: uclient-fetch
+# cannot verify certificates unless ca-bundle is installed.
+try_url() {
 	url="$1"
 	out="$2"
 
-	say "downloading $out"
-
 	if command -v curl >/dev/null 2>&1; then
-		curl -fsSL "$url" -o "$out" && return 0
+		curl -fsSL --connect-timeout 15 --max-time 180 "$url" -o "$out" 2>/dev/null && [ -s "$out" ] && return 0
 	fi
 
-	# uclient-fetch on a stock image cannot verify certificates unless
-	# ca-bundle is installed; fall back rather than failing outright.
-	wget -q -O "$out" "$url" 2>/dev/null && return 0
-	wget -q --no-check-certificate -O "$out" "$url" 2>/dev/null && return 0
+	wget -q -O "$out" "$url" 2>/dev/null && [ -s "$out" ] && return 0
+	wget -q --no-check-certificate -O "$out" "$url" 2>/dev/null && [ -s "$out" ] && return 0
 
-	die "could not download $url - check the router's internet connection"
+	rm -f "$out"
+	return 1
 }
 
-fetch "$REPO_RAW/$THEME" "$THEME"
-fetch "$REPO_RAW/$APP" "$APP"
+fetch() {
+	name="$1"
+	out="$2"
+
+	say "downloading $name"
+
+	for base in $MIRRORS; do
+		if try_url "$base/$name" "$out"; then
+			return 0
+		fi
+
+		say "  $(echo "$base" | sed 's|https://||;s|/.*||') did not answer, trying the next source"
+	done
+
+	die "could not download $name from any source - check the router's internet connection"
+}
+
+fetch "$THEME" "$THEME"
+fetch "$APP" "$APP"
 
 # -------------------------------------------------------------- install ---
 

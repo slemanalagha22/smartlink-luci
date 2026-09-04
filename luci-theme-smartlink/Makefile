@@ -10,7 +10,7 @@ include $(TOPDIR)/rules.mk
 LUCI_TITLE:=SMARTLink Theme
 LUCI_DEPENDS:=+luci-base
 
-PKG_VERSION:=1.2.4
+PKG_VERSION:=1.2.5
 PKG_LICENSE:=Apache-2.0
 PKG_MAINTAINER:=Alagha Technology
 
