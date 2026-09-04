@@ -27,7 +27,7 @@ var LIST = [
 	{
 		key: 'ap', icon: 'bridge', accent: 'lan',
 		title: 'نقطة وصول / جسر',
-		desc: 'يمرّر الشبكة من راوتر آخر ويعمل كموسّع سلكي. يُطفأ خادم DHCP ويُضم منفذ WAN إلى الشبكة المحلية.',
+		desc: 'يمرّر الشبكة من راوتر آخر. الواي فاي يبقى شغّالاً، ويُطفأ خادم DHCP ويُضم منفذ WAN إلى الشبكة المحلية.',
 		connection: 'address'
 	},
 	{
@@ -44,6 +44,53 @@ var LIST = [
 		requires: 'relayd'
 	}
 ];
+
+/*
+ * Edits that keep the access points broadcasting.
+ *
+ * Every mode except a pure wireless client still serves Wi-Fi, so the radios
+ * are switched on and each access-point interface is attached to the LAN
+ * bridge. Without this an access point could come up bridged, addressed and
+ * completely silent - a radio someone had disabled stays disabled, and an
+ * interface left on the `wan` network has nothing to bridge to once wan is
+ * gone. The station interface a repeater or WISP adds is left alone.
+ */
+function keepWifiServing(cfg, staSection) {
+	var wireless = cfg.wireless || {},
+	    edits = [];
+
+	Object.keys(wireless).forEach(function(name) {
+		var section = wireless[name] || {};
+
+		if (section['.type'] === 'wifi-device') {
+			edits.push({ config: 'wireless', section: name, values: { disabled: '0' } });
+			return;
+		}
+
+		if (section['.type'] !== 'wifi-iface')
+			return;
+
+		/* the uplink client belongs to whoever created it */
+		if (name === staSection || section.mode === 'sta')
+			return;
+
+		var values = { disabled: '0' };
+
+		/*
+		 * Only re-home an interface that would otherwise be stranded: one with
+		 * no network, or one bridged to a network this mode takes away. A
+		 * guest SSID on its own network is left where its owner put it.
+		 */
+		var attached = section.network;
+
+		if (!attached || attached === 'wan' || attached === 'wwan')
+			values.network = 'lan';
+
+		edits.push({ config: 'wireless', section: name, values: values });
+	});
+
+	return edits;
+}
 
 function lanPortsOf(net) {
 	var lan = net.lan || {};
@@ -142,7 +189,7 @@ return baseclass.extend({
 					} },
 					{ config: 'network', section: 'wan', values: { disabled: '0' } },
 					{ config: 'dhcp', section: 'lan', values: { ignore: '0' } }
-				],
+				].concat(keepWifiServing(cfg, STA_SECTION)),
 				drops: [ [ 'wireless', STA_SECTION ], [ 'network', 'wwan' ] ],
 				creates: [],
 				address: lan.ipaddr || '192.168.1.1',
@@ -174,7 +221,7 @@ return baseclass.extend({
 					{ config: 'network', section: 'lan', values: values },
 					{ config: 'network', section: 'wan', values: { disabled: '1' } },
 					{ config: 'dhcp', section: 'lan', values: { ignore: '1' } }
-				],
+				].concat(keepWifiServing(cfg, STA_SECTION)),
 				drops: [ [ 'wireless', STA_SECTION ], [ 'network', 'wwan' ] ],
 				creates: [],
 				address: fixed ? opts.ipaddr : null,
@@ -198,7 +245,7 @@ return baseclass.extend({
 				{ config: 'network', section: 'wwan', values: { proto: wisp ? 'dhcp' : 'none' } },
 				{ config: 'network', section: 'lan', values: { ports: ports } },
 				{ config: 'dhcp', section: 'lan', values: { ignore: wisp ? '0' : '1' } }
-			],
+			].concat(keepWifiServing(cfg, STA_SECTION)),
 			drops: [],
 			creates: [
 				{ config: 'wireless', section: STA_SECTION, type: 'wifi-iface' },
