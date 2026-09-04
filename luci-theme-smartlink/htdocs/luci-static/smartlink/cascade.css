@@ -2590,10 +2590,10 @@ a.sl-tile:hover .sl-tile-icon,
 .sl-login-head { text-align: center; margin-block-end: 28px; }
 
 .sl-login-logo {
-	inline-size: 64px;
-	block-size: 64px;
-	color: var(--sl-primary-bright);
-	filter: drop-shadow(0 6px 16px rgba(46, 168, 228, .32));
+	inline-size: 68px;
+	block-size: 68px;
+	/* The mark paints itself; a colour here would only tint what it draws. */
+	filter: drop-shadow(0 10px 22px rgba(27, 130, 196, .35));
 }
 
 .sl-login-head h1 {
@@ -2690,7 +2690,9 @@ a.sl-tile:hover .sl-tile-icon,
 	background: linear-gradient(90deg, transparent, rgba(132, 207, 255, .55), transparent);
 }
 
-:root[data-darkmode="true"] .sl-login-logo { color: #84cfff; }
+:root[data-darkmode="true"] .sl-login-logo {
+	filter: drop-shadow(0 10px 26px rgba(46, 168, 228, .45));
+}
 :root[data-darkmode="true"] .sl-login-head h1 { color: #ffffff; }
 :root[data-darkmode="true"] .sl-login-head p { color: rgba(212, 228, 250, .66); }
 :root[data-darkmode="true"] .sl-login-card .cbi-value-title { color: rgba(212, 228, 250, .78); }

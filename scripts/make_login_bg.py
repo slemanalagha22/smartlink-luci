@@ -19,7 +19,13 @@ import pathlib
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 STATIC = ROOT / "luci-theme-smartlink/htdocs/luci-static/smartlink"
 
-W, H = 1600, 900
+# The frame is deliberately wide - 2.1:1, close to the aspect of the screens
+# this runs on. preserveAspectRatio=slice crops whichever axis is surplus, and
+# a squarer frame meant the browser cropped the top off the masts. Tips are
+# also kept well below the upper edge so a taller crop still spares them.
+W, H = 1600, 760
+GROUND = 648   # masts stand on this line rather than running off the frame
+SKY = 205      # nothing structural sits above this
 
 PALETTES = {
     "login-bg.svg": {
@@ -33,6 +39,7 @@ PALETTES = {
         "arc_top":   0.42,
         "star":      "#ffffff",
         "star_base": 0.10,
+        "haze":      "#04101d",
     },
     "login-bg-light.svg": {
         "stroke":    "#4a7fa8",
@@ -45,20 +52,28 @@ PALETTES = {
         "arc_top":   0.36,
         "star":      "#3d6f96",
         "star_base": 0.07,
+        "haze":      "#dbe8f5",
     },
 }
 
+# Two masts frame the card, two smaller ones sit further back for depth.
+# None of them cross the band the card occupies.
 TOWERS = [
-    dict(cx=300,  tip=330, hb=78, ht=9,  bays=10, arcs=(46, 78, 112)),
-    dict(cx=1310, tip=300, hb=84, ht=10, bays=11, arcs=(50, 86, 124)),
-    dict(cx=800,  tip=560, hb=52, ht=7,  bays=6,  arcs=(34, 58)),
+    dict(cx=268,  tip=SKY + 25, hb=66, ht=8, bays=10, arcs=(40, 68, 96), depth=1.0),
+    dict(cx=1338, tip=SKY,      hb=72, ht=9, bays=11, arcs=(44, 74, 104), depth=1.0),
+    dict(cx=112,  tip=402,      hb=36, ht=6, bays=7,  arcs=(28, 48),     depth=0.5),
+    dict(cx=1494, tip=430,      hb=32, ht=5, bays=6,  arcs=(26, 44),     depth=0.5),
 ]
 
-MESH_NODES = [(300, 330), (800, 560), (1310, 300), (560, 690), (1060, 720)]
-MESH_LINKS = [(0, 3), (3, 1), (1, 4), (4, 2), (0, 1), (1, 2), (3, 4)]
+# The link mesh threads between the mast heads and a few ground relays,
+# staying out of the middle where the card sits.
+MESH_NODES = [(268, SKY + 25), (1338, SKY), (112, 402), (1494, 430),
+              (398, 520), (1206, 548)]
+MESH_LINKS = [(0, 2), (0, 4), (2, 4), (1, 3), (1, 5), (3, 5), (4, 5)]
 
-STARS = [(140, 150), (420, 96), (980, 120), (1500, 205), (1180, 60),
-         (640, 180), (1420, 380), (210, 300), (900, 250), (1120, 320)]
+STARS = [(150, 96), (410, 70), (980, 86), (1500, 130), (1180, 46),
+         (640, 118), (1430, 250), (232, 180), (900, 156), (1090, 220),
+         (760, 62), (1290, 96)]
 
 
 def mast(cx, base_y, tip_y, half_base, half_top, bays):
@@ -120,11 +135,28 @@ def build(filename, pal):
         '<stop offset="45%" stop-color="{}" stop-opacity="{}"/>'
         '<stop offset="100%" stop-color="{}" stop-opacity="{}"/>'
         '</linearGradient>'
+        '<linearGradient id="haze" x1="0" y1="0" x2="0" y2="1">'
+        '<stop offset="0%" stop-color="{}" stop-opacity="0"/>'
+        '<stop offset="62%" stop-color="{}" stop-opacity="{}"/>'
+        '<stop offset="100%" stop-color="{}" stop-opacity="{}"/>'
+        '</linearGradient>'
         '</defs>'.format(g[0], g[1], g[2], g[3], g[4],
-                         stroke, leg[0], stroke, leg[1], stroke, leg[2])
+                         stroke, leg[0], stroke, leg[1], stroke, leg[2],
+                         pal["haze"], pal["haze"], ".55", pal["haze"], ".92")
     )
 
     parts.append('<rect width="{}" height="{}" fill="url(#glow)"/>'.format(W, H))
+
+    # A horizon for the masts to stand on, and haze that settles over their
+    # feet so nothing looks sawn off at the bottom of the frame.
+    parts.append(
+        '<path d="M0 {} H{}" stroke="{}" stroke-opacity="{}" stroke-width="1.2"/>'
+        .format(GROUND, W, stroke, pal["mesh"])
+    )
+    parts.append(
+        '<rect x="0" y="{}" width="{}" height="{}" fill="url(#haze)"/>'
+        .format(GROUND - 120, W, H - GROUND + 120)
+    )
 
     # --- mesh ---------------------------------------------------------
     mesh = " ".join(
@@ -144,24 +176,30 @@ def build(filename, pal):
 
     # --- towers -------------------------------------------------------
     for t in TOWERS:
-        legs, ties, braces = mast(t["cx"], H + 40, t["tip"], t["hb"], t["ht"], t["bays"])
+        legs, ties, braces = mast(t["cx"], GROUND, t["tip"], t["hb"], t["ht"], t["bays"])
+
+        # Masts further back are drawn fainter; that is the whole of the
+        # depth cue, and it is cheaper than a second palette.
+        depth = t.get("depth", 1.0)
 
         parts.append(
-            '<g fill="none" stroke="url(#fade)" stroke-linecap="round">'
+            '<g fill="none" stroke="url(#fade)" stroke-linecap="round" opacity="{:.2f}">'
             '<path d="{}" stroke-width="2.4"/>'
             '<path d="{}" stroke-width="1.3"/>'
             '<path d="{}" stroke-width="1"/>'
-            '</g>'.format(legs, ties, braces)
+            '</g>'.format(depth, legs, ties, braces)
         )
 
-        parts.append('<circle cx="{}" cy="{}" r="5" fill="{}" '
-                     'fill-opacity="{}"/>'.format(t["cx"], t["tip"], stroke, pal["head"]))
+        parts.append('<circle cx="{}" cy="{}" r="{:.1f}" fill="{}" '
+                     'fill-opacity="{:.2f}"/>'.format(
+                         t["cx"], t["tip"], 5 * depth, stroke,
+                         float(pal["head"]) * depth))
 
         for i, d in enumerate(arcs(t["cx"], t["tip"], t["arcs"])):
             parts.append(
                 '<path d="{}" fill="none" stroke="{}" stroke-opacity="{:.2f}" '
                 'stroke-width="2.2" stroke-linecap="round"/>'.format(
-                    d, pal["arc"], pal["arc_top"] - i * 0.11)
+                    d, pal["arc"], (pal["arc_top"] - i * 0.11) * depth)
             )
 
     # --- far stars ----------------------------------------------------
