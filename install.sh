@@ -12,7 +12,7 @@ set -e
 # Overridable so the packages can be served from a local mirror or a build
 # machine on the LAN - useful when the router has no internet yet.
 REPO_RAW="${SMARTLINK_BASE:-https://raw.githubusercontent.com/slemanalagha22/smartlink-luci/main/packages}"
-VERSION="1.1.2-1"
+VERSION="1.1.4-1"
 TMP="/tmp/smartlink-install"
 
 THEME="luci-theme-smartlink_${VERSION}_all.ipk"

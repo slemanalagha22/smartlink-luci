@@ -2423,15 +2423,34 @@ a.sl-tile:hover .sl-tile-icon,
 	border-radius: var(--sl-radius-card);
 	background: var(--sl-card);
 	cursor: pointer;
-	/* Browsers centre a button's contents by default; these read as cards. */
+	/*
+	 * Browsers centre a button's contents by default; these read as cards.
+	 * `stretch` rather than `flex-start`: a flex-start column sizes each child
+	 * to its own content, which stopped the descriptions wrapping and let them
+	 * run past the card edge. The icon has a fixed size, so it still sits at
+	 * the start either way.
+	 */
 	text-align: start;
-	align-items: flex-start;
+	align-items: stretch;
+	/*
+	 * The button base sets white-space:nowrap, which is right for a label and
+	 * wrong for a card: it kept these descriptions on one line and ran them
+	 * off the edge. Cards made of buttons have to opt back out.
+	 */
+	white-space: normal;
 	transition: border-color .15s ease, box-shadow .15s ease;
 }
 
+.sl-mode > * { min-inline-size: 0; }
+.sl-mode-desc { overflow-wrap: anywhere; }
+
 .sl-mode:hover { border-color: var(--sl-accent, var(--sl-primary-bright)); }
 
-.sl-mode.is-current {
+/* The mode the router is in right now: a quiet marker, not a selection. */
+.sl-mode.is-current { border-color: var(--sl-outline-variant); }
+
+/* The mode the person has picked in this run of the wizard. */
+.sl-mode.is-selected {
 	border-color: var(--sl-accent, var(--sl-primary-bright));
 	box-shadow: var(--sl-shadow-raised);
 }
@@ -2441,6 +2460,8 @@ a.sl-tile:hover .sl-tile-icon,
 .sl-mode-icon {
 	inline-size: 46px;
 	block-size: 46px;
+	flex-shrink: 0;
+	align-self: flex-start;
 	border-radius: var(--sl-radius-chip);
 	display: flex;
 	align-items: center;
@@ -2481,6 +2502,7 @@ a.sl-tile:hover .sl-tile-icon,
 	text-align: start;
 	inline-size: 100%;
 	justify-content: flex-start;
+	white-space: normal;
 }
 
 .sl-scan-row:hover { border-color: var(--sl-primary-bright); background: var(--sl-inset); }

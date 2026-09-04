@@ -12,7 +12,7 @@ LUCI_DESCRIPTION:=Single-page commissioning for mode, internet connection and Wi
 LUCI_DEPENDS:=+luci-base
 LUCI_PKGARCH:=all
 
-PKG_VERSION:=1.1.2
+PKG_VERSION:=1.1.4
 PKG_LICENSE:=Apache-2.0
 PKG_MAINTAINER:=Alagha Technology
 

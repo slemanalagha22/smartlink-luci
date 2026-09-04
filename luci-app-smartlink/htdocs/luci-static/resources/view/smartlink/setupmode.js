@@ -38,7 +38,9 @@ return view.extend({
 
 			var node = E('button', {
 				'type': 'button',
-				'class': 'sl-mode sl-accent-' + m.accent + (unavailable ? ' is-unavailable' : ''),
+				'class': 'sl-mode sl-accent-' + m.accent +
+					(m.key === current ? ' is-current' : '') +
+					(unavailable ? ' is-unavailable' : ''),
 				'disabled': unavailable ? '' : null
 			}, [
 				(m.key === current) ? E('span', { 'class': 'sl-mode-tag' }, 'الوضع الحالي') : '',
@@ -62,8 +64,11 @@ return view.extend({
 			self.selected = key;
 			modes.rememberChoice(key);
 
+			/* `is-current` says what the router is; `is-selected` says what the
+			   person just picked. They are often different, and the card has
+			   to show both without one masking the other. */
 			cards.forEach(function(c) {
-				c.node.classList.toggle('is-current', c.key === key);
+				c.node.classList.toggle('is-selected', c.key === key);
 			});
 
 			var m = modes.byKey(key);
