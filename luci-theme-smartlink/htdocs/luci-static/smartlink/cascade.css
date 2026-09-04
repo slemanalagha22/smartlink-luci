@@ -2544,7 +2544,7 @@ a.sl-tile:hover .sl-tile-icon,
 	content: '';
 	position: absolute;
 	inset: 0;
-	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900' preserveAspectRatio='xMidYMax slice'%3E%3Cg fill='none' stroke='%2384cfff' stroke-opacity='.30' stroke-width='2'%3E%3Cpath d='M180 900 L260 470 L340 900 M205 660 H315 M222 570 H298'/%3E%3Cpath d='M1260 900 L1340 470 L1420 900 M1285 660 H1395 M1302 570 H1378'/%3E%3Cpath d='M690 900 L760 560 L830 900 M712 700 H808 M727 620 H793'/%3E%3C/g%3E%3Cg fill='none' stroke='%232ea8e4' stroke-opacity='.34' stroke-width='2.5'%3E%3Cpath d='M260 430 a70 70 0 0 1 0 -70 M260 400 a40 40 0 0 1 0 -40'/%3E%3Cpath d='M1340 430 a70 70 0 0 0 0 -70 M1340 400 a40 40 0 0 0 0 -40'/%3E%3Cpath d='M760 520 a56 56 0 0 1 0 -56 M760 496 a30 30 0 0 1 0 -30'/%3E%3C/g%3E%3Cg fill='none' stroke='%2384cfff' stroke-opacity='.16' stroke-width='1.2'%3E%3Cpath d='M260 470 L760 560 L1340 470 M260 470 L520 760 L760 560 M760 560 L1080 780 L1340 470 M520 760 L1080 780'/%3E%3C/g%3E%3Cg fill='%2384cfff' fill-opacity='.5'%3E%3Ccircle cx='260' cy='470' r='6'/%3E%3Ccircle cx='760' cy='560' r='6'/%3E%3Ccircle cx='1340' cy='470' r='6'/%3E%3Ccircle cx='520' cy='760' r='5'/%3E%3Ccircle cx='1080' cy='780' r='5'/%3E%3C/g%3E%3Cg fill='%23ffffff' fill-opacity='.10'%3E%3Ccircle cx='140' cy='150' r='2'/%3E%3Ccircle cx='420' cy='90' r='2'/%3E%3Ccircle cx='980' cy='120' r='2'/%3E%3Ccircle cx='1500' cy='200' r='2'/%3E%3Ccircle cx='1180' cy='60' r='2'/%3E%3Ccircle cx='640' cy='180' r='2'/%3E%3C/g%3E%3C/svg%3E");
+	background-image: url('login-bg.svg');
 	background-position: bottom center;
 	background-size: cover;
 	background-repeat: no-repeat;
@@ -2563,20 +2563,48 @@ a.sl-tile:hover .sl-tile-icon,
 .sl-login-card {
 	position: relative;
 	z-index: 1;
-	inline-size: min(420px, 100%);
-	padding: 32px;
-	border-radius: var(--sl-radius-card);
-	background: rgba(13, 28, 45, .82);
-	border: 1px solid rgba(132, 207, 255, .22);
-	box-shadow: 0 24px 60px rgba(0, 0, 0, .45);
-	backdrop-filter: blur(14px);
+	inline-size: min(430px, 100%);
+	padding: 40px 36px 36px;
+	border-radius: 18px;
+	background:
+		linear-gradient(180deg, rgba(20, 41, 64, .90), rgba(9, 22, 38, .93));
+	border: 1px solid rgba(132, 207, 255, .18);
+	box-shadow:
+		0 32px 80px rgba(0, 0, 0, .55),
+		0 0 0 1px rgba(255, 255, 255, .03) inset,
+		0 1px 0 rgba(255, 255, 255, .07) inset;
+	backdrop-filter: blur(18px);
 	color: #d4e4fa;
 }
 
-.sl-login-head { text-align: center; margin-block-end: 24px; }
-.sl-login-logo { inline-size: 56px; block-size: 56px; color: #84cfff; }
-.sl-login-head h1 { font-size: 24px; font-weight: 700; margin: 10px 0 6px; color: #ffffff; }
-.sl-login-head p { color: rgba(212, 228, 250, .72); margin: 0; font-size: 14px; }
+/* A lit top edge, the way a panel catches light from above. */
+.sl-login-card::before {
+	content: '';
+	position: absolute;
+	inset-block-start: -1px;
+	inset-inline: 18%;
+	block-size: 1px;
+	background: linear-gradient(90deg, transparent, rgba(132, 207, 255, .55), transparent);
+}
+
+.sl-login-head { text-align: center; margin-block-end: 28px; }
+
+.sl-login-logo {
+	inline-size: 64px;
+	block-size: 64px;
+	color: #84cfff;
+	filter: drop-shadow(0 6px 18px rgba(46, 168, 228, .45));
+}
+
+.sl-login-head h1 {
+	font-size: 26px;
+	font-weight: 700;
+	margin: 14px 0 8px;
+	color: #ffffff;
+	letter-spacing: .01em;
+}
+
+.sl-login-head p { color: rgba(212, 228, 250, .66); margin: 0; font-size: 14px; }
 
 /* The card is the surface here: LuCI's own map/section chrome must not paint
    its light card background on top of it. */
@@ -2598,13 +2626,36 @@ a.sl-tile:hover .sl-tile-icon,
 
 .sl-login-card input {
 	inline-size: 100%;
-	background: rgba(5, 20, 36, .8);
-	border-color: rgba(132, 207, 255, .25);
+	background: rgba(4, 15, 27, .72);
+	border-color: rgba(132, 207, 255, .20);
 	color: #eaf3ff;
+	transition: border-color .15s ease, box-shadow .15s ease;
 }
 
-.sl-login-card input:focus { border-color: var(--sl-primary-bright); }
-.sl-login-card .btn { inline-size: 100%; justify-content: center; font-size: 15px; margin-block-start: 8px; }
+.sl-login-card input::placeholder { color: rgba(212, 228, 250, .35); }
+
+.sl-login-card input:focus {
+	border-color: var(--sl-primary-bright);
+	box-shadow: 0 0 0 3px rgba(46, 168, 228, .18);
+}
+
+.sl-login-card .cbi-value-title {
+	font-size: 13px;
+	letter-spacing: .01em;
+	color: rgba(212, 228, 250, .78);
+}
+
+.sl-login-card .btn {
+	inline-size: 100%;
+	justify-content: center;
+	font-size: 15px;
+	font-weight: 700;
+	margin-block-start: 22px;
+	padding-block: 13px;
+	box-shadow: 0 8px 22px rgba(46, 168, 228, .28);
+}
+
+.sl-login-card .btn:hover { box-shadow: 0 10px 26px rgba(46, 168, 228, .38); }
 .sl-login-card hr { display: none; }
 .sl-login-card .alert-message { margin-block-start: 14px; }
 

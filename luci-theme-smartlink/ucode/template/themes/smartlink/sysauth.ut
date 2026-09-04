@@ -8,7 +8,7 @@
 
 {% include('header', { blank_page: true }) %}
 
-<div class="sl-login-page">
+<div class="sl-login-page" dir="rtl" lang="ar">
 	<div class="sl-login-card">
 		<div class="sl-login-head">
 			<svg class="sl-login-logo" viewBox="0 0 32 32" aria-hidden="true">
@@ -16,7 +16,7 @@
 				<path d="M20.8 10.4a6.6 6.6 0 0 0-4.9-2 6.6 6.6 0 0 0-4.7 1.9c-.6.6-.6 1.5 0 2.1.6.6 1.5.6 2.1 0a3.7 3.7 0 0 1 2.6-1c1 0 1.9.4 2.7 1.1.6.6 1.5.5 2.1-.1.6-.6.6-1.4.1-2Zm3.4-3.5A11.4 11.4 0 0 0 16 3.6c-3 0-5.9 1.2-8.1 3.3-.6.6-.6 1.5 0 2.1.6.6 1.5.6 2.1 0A8.4 8.4 0 0 1 16 6.6c2.2 0 4.3.8 5.9 2.3.6.6 1.6.6 2.2 0 .6-.6.6-1.5.1-2Zm-8.2 8.7a3.6 3.6 0 0 0-3.6 3.6c0 .9.3 1.7.9 2.4l2.7 3.2 2.7-3.2c.6-.7.9-1.5.9-2.4a3.6 3.6 0 0 0-3.6-3.6Z" fill="currentColor"/>
 			</svg>
 			<h1>SMARTLink</h1>
-			<p>{{ _('Please enter your username and password.') }}</p>
+			<p>الرجاء إدخال اسم المستخدم وكلمة المرور.</p>
 		</div>
 
 		<section hidden>
@@ -24,13 +24,13 @@
 				<div class="cbi-section">
 					<div class="cbi-section-node">
 						<div class="cbi-value">
-							<label class="cbi-value-title" for="luci_username">{{ _('Username') }}</label>
+							<label class="cbi-value-title" for="luci_username">اسم المستخدم</label>
 							<div class="cbi-value-field">
 								<input name="luci_username" id="luci_username" type="text" autocomplete="username" value="{{ entityencode(duser, true) }}">
 							</div>
 						</div>
 						<div class="cbi-value">
-							<label class="cbi-value-title" for="luci_password">{{ _('Password') }}</label>
+							<label class="cbi-value-title" for="luci_password">كلمة المرور</label>
 							<div class="cbi-value-field">
 								<input name="luci_password" id="luci_password" type="password" autocomplete="current-password">
 							</div>
@@ -41,15 +41,15 @@
 
 			{% if (fuser): %}
 			<div class="alert-message error">
-				{{ _('Invalid username and/or password! Please try again.') }}
+				اسم المستخدم أو كلمة المرور غير صحيحة. حاول مرة أخرى.
 			</div>
 			{% endif %}
 
-			<button class="btn cbi-button-positive important">{{ _('Log in') }}</button>
+			<button class="btn cbi-button-positive important">تسجيل الدخول</button>
 		</section>
 
 		<div id="view">
-			<div class="spinning">{{ _('Loading view…') }}</div>
+			<div class="spinning">جارٍ التحميل…</div>
 			<script type="text/javascript">
 				L.require('ui').then(function(ui) {
 					ui.instantiateView('smartlink.sysauth');
