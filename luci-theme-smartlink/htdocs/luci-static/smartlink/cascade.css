@@ -2526,6 +2526,11 @@ a.sl-tile:hover .sl-tile-icon,
  * internet at all.
  * ===================================================================== */
 
+/*
+ * The login screen follows the interface's colour scheme. Painting it dark
+ * unconditionally meant signing in through a night scene and landing on a
+ * white dashboard - two products, one router.
+ */
 .sl-login-page {
 	position: relative;
 	min-block-size: 100vh;
@@ -2535,28 +2540,27 @@ a.sl-tile:hover .sl-tile-icon,
 	padding: 24px;
 	overflow: hidden;
 	background:
-		radial-gradient(1100px 600px at 50% -10%, rgba(46, 168, 228, .28), transparent 70%),
-		linear-gradient(180deg, #0b2036 0%, #061729 55%, #04101d 100%);
+		radial-gradient(1100px 620px at 50% -10%, rgba(46, 168, 228, .16), transparent 70%),
+		linear-gradient(180deg, #f7fbff 0%, #e8f1fa 55%, #dbe8f5 100%);
 }
 
-/* mast + mesh layer */
 .sl-login-page::before {
 	content: '';
 	position: absolute;
 	inset: 0;
-	background-image: url('login-bg.svg');
+	background-image: url('login-bg-light.svg');
 	background-position: bottom center;
 	background-size: cover;
 	background-repeat: no-repeat;
 	pointer-events: none;
 }
 
-/* soft ground fade so the card never fights the artwork */
+/* keeps the card legible where it sits over the mesh */
 .sl-login-page::after {
 	content: '';
 	position: absolute;
 	inset: 0;
-	background: radial-gradient(560px 380px at 50% 50%, rgba(4, 16, 29, .72), transparent 75%);
+	background: radial-gradient(560px 400px at 50% 50%, rgba(247, 251, 255, .82), transparent 76%);
 	pointer-events: none;
 }
 
@@ -2566,25 +2570,21 @@ a.sl-tile:hover .sl-tile-icon,
 	inline-size: min(430px, 100%);
 	padding: 40px 36px 36px;
 	border-radius: 18px;
-	background:
-		linear-gradient(180deg, rgba(20, 41, 64, .90), rgba(9, 22, 38, .93));
-	border: 1px solid rgba(132, 207, 255, .18);
+	background: linear-gradient(180deg, #ffffff, #fbfdff);
+	border: 1px solid var(--sl-border);
 	box-shadow:
-		0 32px 80px rgba(0, 0, 0, .55),
-		0 0 0 1px rgba(255, 255, 255, .03) inset,
-		0 1px 0 rgba(255, 255, 255, .07) inset;
-	backdrop-filter: blur(18px);
-	color: #d4e4fa;
+		0 28px 64px rgba(31, 63, 94, .16),
+		0 1px 0 rgba(255, 255, 255, .9) inset;
+	color: var(--sl-ink);
 }
 
-/* A lit top edge, the way a panel catches light from above. */
 .sl-login-card::before {
 	content: '';
 	position: absolute;
 	inset-block-start: -1px;
 	inset-inline: 18%;
 	block-size: 1px;
-	background: linear-gradient(90deg, transparent, rgba(132, 207, 255, .55), transparent);
+	background: linear-gradient(90deg, transparent, rgba(46, 168, 228, .55), transparent);
 }
 
 .sl-login-head { text-align: center; margin-block-end: 28px; }
@@ -2592,22 +2592,20 @@ a.sl-tile:hover .sl-tile-icon,
 .sl-login-logo {
 	inline-size: 64px;
 	block-size: 64px;
-	color: #84cfff;
-	filter: drop-shadow(0 6px 18px rgba(46, 168, 228, .45));
+	color: var(--sl-primary-bright);
+	filter: drop-shadow(0 6px 16px rgba(46, 168, 228, .32));
 }
 
 .sl-login-head h1 {
 	font-size: 26px;
 	font-weight: 700;
 	margin: 14px 0 8px;
-	color: #ffffff;
+	color: var(--sl-ink);
 	letter-spacing: .01em;
 }
 
-.sl-login-head p { color: rgba(212, 228, 250, .66); margin: 0; font-size: 14px; }
+.sl-login-head p { color: var(--sl-ink-subtle); margin: 0; font-size: 14px; }
 
-/* The card is the surface here: LuCI's own map/section chrome must not paint
-   its light card background on top of it. */
 .sl-login-card .cbi-map,
 .sl-login-card .cbi-section,
 .sl-login-card .cbi-section-node,
@@ -2621,28 +2619,31 @@ a.sl-tile:hover .sl-tile-icon,
 
 .sl-login-card .cbi-section-node { display: block; }
 .sl-login-card .cbi-value { display: block; margin-block-end: 16px; }
-.sl-login-card .cbi-value-title { display: block; margin-block-end: 6px; font-weight: 600; color: rgba(212, 228, 250, .9); }
+
+.sl-login-card .cbi-value-title {
+	display: block;
+	margin-block-end: 6px;
+	font-size: 13px;
+	font-weight: 600;
+	letter-spacing: .01em;
+	color: var(--sl-ink-muted);
+}
+
 .sl-login-card .cbi-value-field { inline-size: 100%; }
 
 .sl-login-card input {
 	inline-size: 100%;
-	background: rgba(4, 15, 27, .72);
-	border-color: rgba(132, 207, 255, .20);
-	color: #eaf3ff;
+	background: var(--sl-inset);
+	border-color: var(--sl-border-strong);
+	color: var(--sl-ink);
 	transition: border-color .15s ease, box-shadow .15s ease;
 }
 
-.sl-login-card input::placeholder { color: rgba(212, 228, 250, .35); }
+.sl-login-card input::placeholder { color: var(--sl-ink-subtle); }
 
 .sl-login-card input:focus {
 	border-color: var(--sl-primary-bright);
 	box-shadow: 0 0 0 3px rgba(46, 168, 228, .18);
-}
-
-.sl-login-card .cbi-value-title {
-	font-size: 13px;
-	letter-spacing: .01em;
-	color: rgba(212, 228, 250, .78);
 }
 
 .sl-login-card .btn {
@@ -2652,14 +2653,56 @@ a.sl-tile:hover .sl-tile-icon,
 	font-weight: 700;
 	margin-block-start: 22px;
 	padding-block: 13px;
-	box-shadow: 0 8px 22px rgba(46, 168, 228, .28);
+	box-shadow: 0 8px 22px rgba(46, 168, 228, .26);
 }
 
-.sl-login-card .btn:hover { box-shadow: 0 10px 26px rgba(46, 168, 228, .38); }
+.sl-login-card .btn:hover { box-shadow: 0 10px 26px rgba(46, 168, 228, .36); }
 .sl-login-card hr { display: none; }
 .sl-login-card .alert-message { margin-block-start: 14px; }
 
-/* The theme footer would sit on the artwork; the login page hides it. */
+/* ---- dark scheme ---- */
+
+:root[data-darkmode="true"] .sl-login-page {
+	background:
+		radial-gradient(1100px 600px at 50% -10%, rgba(46, 168, 228, .28), transparent 70%),
+		linear-gradient(180deg, #0b2036 0%, #061729 55%, #04101d 100%);
+}
+
+:root[data-darkmode="true"] .sl-login-page::before {
+	background-image: url('login-bg.svg');
+}
+
+:root[data-darkmode="true"] .sl-login-page::after {
+	background: radial-gradient(560px 380px at 50% 50%, rgba(4, 16, 29, .72), transparent 75%);
+}
+
+:root[data-darkmode="true"] .sl-login-card {
+	background: linear-gradient(180deg, rgba(20, 41, 64, .90), rgba(9, 22, 38, .93));
+	border-color: rgba(132, 207, 255, .18);
+	box-shadow:
+		0 32px 80px rgba(0, 0, 0, .55),
+		0 1px 0 rgba(255, 255, 255, .07) inset;
+	backdrop-filter: blur(18px);
+	color: #d4e4fa;
+}
+
+:root[data-darkmode="true"] .sl-login-card::before {
+	background: linear-gradient(90deg, transparent, rgba(132, 207, 255, .55), transparent);
+}
+
+:root[data-darkmode="true"] .sl-login-logo { color: #84cfff; }
+:root[data-darkmode="true"] .sl-login-head h1 { color: #ffffff; }
+:root[data-darkmode="true"] .sl-login-head p { color: rgba(212, 228, 250, .66); }
+:root[data-darkmode="true"] .sl-login-card .cbi-value-title { color: rgba(212, 228, 250, .78); }
+
+:root[data-darkmode="true"] .sl-login-card input {
+	background: rgba(4, 15, 27, .72);
+	border-color: rgba(132, 207, 255, .20);
+	color: #eaf3ff;
+}
+
+:root[data-darkmode="true"] .sl-login-card input::placeholder { color: rgba(212, 228, 250, .35); }
+
 body:has(.sl-login-page) .sl-footer { display: none; }
 
 @media screen and (max-width: 560px) {

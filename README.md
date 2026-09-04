@@ -27,9 +27,9 @@ opkg update && opkg install ca-bundle
 ```sh
 cd /tmp
 B=https://raw.githubusercontent.com/slemanalagha22/smartlink-luci/main/packages
-wget $B/luci-theme-smartlink_1.2.0-1_all.ipk
-wget $B/luci-app-smartlink_1.2.0-1_all.ipk
-opkg install luci-theme-smartlink_1.2.0-1_all.ipk luci-app-smartlink_1.2.0-1_all.ipk
+wget $B/luci-theme-smartlink_1.2.1-1_all.ipk
+wget $B/luci-app-smartlink_1.2.1-1_all.ipk
+opkg install luci-theme-smartlink_1.2.1-1_all.ipk luci-app-smartlink_1.2.1-1_all.ipk
 ```
 
 ### Remove
