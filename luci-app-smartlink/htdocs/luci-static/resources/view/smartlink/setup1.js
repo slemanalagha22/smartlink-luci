@@ -136,10 +136,10 @@ return view.extend({
 		else if (mode.connection === 'address') {
 			var addressing = w.select({
 				id: 'w-addr',
-				value: 'dhcp',
+				value: 'static',
 				options: [
-					[ 'dhcp', 'احصل على عنوان من الراوتر الرئيسي تلقائياً' ],
-					[ 'static', 'عيّن عنواناً ثابتاً' ]
+					[ 'static', 'عيّن عنواناً ثابتاً (موصى به)' ],
+					[ 'dhcp', 'احصل على عنوان من الراوتر الرئيسي تلقائياً' ]
 				]
 			});
 
@@ -310,19 +310,87 @@ return view.extend({
 
 			plan.edits = plan.edits.concat(got.edits);
 
+			var ROLLBACK = 90;
+
+			/*
+			 * Applied behind netifd's rollback timer. We only tell the router
+			 * to keep the change once it has answered us again on whatever
+			 * address it now has; if it cannot, the timer expires and the
+			 * router restores itself.
+			 */
 			var proceed = function() {
-				ui.showModal('جارٍ الحفظ…', [
+				ui.showModal('جارٍ التطبيق…', [
 					E('p', { 'class': 'spinning' }, 'يتم تطبيق الإعدادات')
 				]);
 
-				modes.apply(plan, cfg).then(function() {
-					ui.hideModal();
-					window.location.href = L.url('smartlink/setup/step2');
+				modes.apply(plan, cfg, ROLLBACK).then(function() {
+					if (!changingMode) {
+						return data.confirmApply().then(function() {
+							window.location.href = L.url('smartlink/setup/step2');
+						});
+					}
+
+					return waitForRouter(plan.address);
 				}).catch(function(err) {
 					ui.hideModal();
 					ui.addNotification(null, E('p', 'تعذّر الحفظ: ' + err), 'error');
 				});
 			};
+
+			/* Poll until the router answers, then confirm. */
+			function waitForRouter(address) {
+				var deadline = Date.now() + (ROLLBACK - 15) * 1000,
+				    base = address ? ('http://' + address + '/cgi-bin/luci') : L.env.base_url;
+
+				var countdown = E('p', {}, '');
+
+				ui.showModal('يتم التحقق من الاتصال…', [
+					E('p', { 'class': 'spinning' }, 'ننتظر ردّ الراوتر بعد تغيير الوضع'),
+					countdown,
+					E('p', { 'style': 'color:var(--sl-on-warn-soft);background:var(--sl-warn-soft);padding:10px 14px;border-radius:8px' },
+						'إن لم يردّ خلال المهلة سيتراجع الراوتر عن التغيير تلقائياً ويعود كما كان. لا تطفئ الجهاز.')
+				]);
+
+				return new Promise(function(resolve) {
+					var tick = function() {
+						var left = Math.max(0, Math.round((deadline - Date.now()) / 1000));
+						countdown.textContent = 'المتبقّي: %d ثانية'.format(left);
+
+						if (left <= 0) {
+							ui.showModal('تراجع الراوتر عن التغيير', [
+								E('p', 'لم يردّ الراوتر بعد تغيير الوضع، فأعاد إعداداته السابقة تلقائياً.'),
+								E('p', 'جرّب وأنت موصول بكابل في أحد منافذ LAN، أو اختر عنواناً ثابتاً تعرفه.'),
+								E('div', { 'class': 'right' }, [
+									E('a', { 'class': 'btn cbi-button-action', 'href': L.url('smartlink/setup/mode') }, 'رجوع')
+								])
+							]);
+							resolve();
+							return;
+						}
+
+						fetch(base + '/admin/ubus', { method: 'HEAD', cache: 'no-store' })
+							.then(function() {
+								return data.confirmApply();
+							})
+							.then(function() {
+								ui.showModal('تم التطبيق', [
+									E('p', 'الراوتر يردّ على العنوان الجديد وتم تثبيت التغيير.'),
+									E('div', { 'class': 'right' }, [
+										E('a', {
+											'class': 'btn cbi-button-action',
+											'href': address ? ('http://' + address + '/cgi-bin/luci/smartlink/setup/step2')
+											                : L.url('smartlink/setup/step2')
+										}, 'متابعة')
+									])
+								]);
+								resolve();
+							})
+							.catch(function() { setTimeout(tick, 3000); });
+					};
+
+					setTimeout(tick, 6000);
+				});
+			}
 
 			/* Only a mode change can move the interface out from under us. */
 			if (!changingMode) {

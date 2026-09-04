@@ -92,11 +92,38 @@ function keepWifiServing(cfg, staSection) {
 	return edits;
 }
 
-function lanPortsOf(net) {
-	var lan = net.lan || {};
+/*
+ * The bridge behind `network.lan`, as [section name, port list].
+ *
+ * On a DSA board the LAN interface only names its device - `device br-lan` -
+ * and the ports live in a separate `config device` section. Writing `ports`
+ * onto the interface silently does nothing there: netifd reads the device
+ * section. Getting this wrong is how an access point ends up bridged to
+ * nothing, with its uplink port never joining and no way back in.
+ */
+function lanBridgeOf(net) {
+	var lan = net.lan || {},
+	    deviceName = lan.device || 'br-lan';
 
-	return [].concat(lan.ports || lan.ifname || [])
+	var name = Object.keys(net).filter(function(k) {
+		var sec = net[k] || {};
+		return sec['.type'] === 'device' && sec.type === 'bridge' && sec.name === deviceName;
+	})[0];
+
+	if (name) {
+		var ports = [].concat(net[name].ports || []).join(' ').split(/\s+/).filter(Boolean);
+		return { section: name, ports: ports, onInterface: false };
+	}
+
+	/* Older layout: the interface carries the member list itself. */
+	var legacy = [].concat(lan.ports || lan.ifname || [])
 		.join(' ').split(/\s+/).filter(Boolean);
+
+	return { section: 'lan', ports: legacy, onInterface: true };
+}
+
+function isWanPort(p) {
+	return p === 'wan' || /^wan\d+$/.test(p);
 }
 
 return baseclass.extend({
@@ -121,8 +148,8 @@ return baseclass.extend({
 
 		/* Names are compared exactly so that `wwan`, which WISP adds, is never
 		   mistaken for the physical `wan` port. */
-		var ports = lanPortsOf(net),
-		    wanBridged = ports.some(function(p) { return p === 'wan' || /^wan\d+$/.test(p); }),
+		var bridge = lanBridgeOf(net),
+		    wanBridged = bridge.ports.some(isWanPort),
 		    dhcpOff = (dhcp.lan || {}).ignore === '1';
 
 		if (hasStation) {
@@ -172,18 +199,18 @@ return baseclass.extend({
 
 		var net = cfg.network || {},
 		    lan = net.lan || {},
-		    ports = lanPortsOf(net).filter(function(p) {
-		        return p !== 'wan' && !/^wan\d+$/.test(p);
-		    });
+		    bridge = lanBridgeOf(net),
+		    ports = bridge.ports.filter(function(p) { return !isWanPort(p); });
 
 		if (key === 'router') {
 			return {
 				edits: [
+					{ config: 'network', section: bridge.section,
+					  values: bridge.onInterface ? { ifname: ports.join(' ') } : { ports: ports } },
 					{ config: 'network', section: 'lan', values: {
 						proto: 'static',
 						ipaddr: lan.ipaddr || '192.168.1.1',
 						netmask: lan.netmask || '255.255.255.0',
-						ports: ports,
 						gateway: '',
 						dns: ''
 					} },
@@ -198,8 +225,9 @@ return baseclass.extend({
 		}
 
 		if (key === 'ap') {
-			var values = { ports: ports.concat([ 'wan' ]) },
-			    fixed = (opts.addressing === 'static');
+			var members = ports.concat([ 'wan' ]),
+			    values = {},
+			    fixed = (opts.addressing !== 'dhcp');
 
 			if (fixed) {
 				values.proto = 'static';
@@ -218,6 +246,11 @@ return baseclass.extend({
 
 			return {
 				edits: [
+					/* The uplink port has to join the bridge, and on a DSA board
+					   that means the device section - not the interface. */
+					{ config: 'network', section: bridge.section,
+					  values: bridge.onInterface ? { ifname: members.join(' ') }
+					                             : { ports: members } },
 					{ config: 'network', section: 'lan', values: values },
 					{ config: 'network', section: 'wan', values: { disabled: '1' } },
 					{ config: 'dhcp', section: 'lan', values: { ignore: '1' } }
@@ -243,7 +276,6 @@ return baseclass.extend({
 					key: opts.key || ''
 				} },
 				{ config: 'network', section: 'wwan', values: { proto: wisp ? 'dhcp' : 'none' } },
-				{ config: 'network', section: 'lan', values: { ports: ports } },
 				{ config: 'dhcp', section: 'lan', values: { ignore: wisp ? '0' : '1' } }
 			].concat(keepWifiServing(cfg, STA_SECTION)),
 			drops: [],
@@ -257,7 +289,7 @@ return baseclass.extend({
 	},
 
 	/* Creates missing sections, drops stale ones, then applies the edits. */
-	apply: function(plan, cfg) {
+	apply: function(plan, cfg, timeout) {
 		var creates = (plan.creates || []).filter(function(c) {
 			return !((cfg[c.config] || {})[c.section]);
 		});
@@ -273,7 +305,10 @@ return baseclass.extend({
 					: Promise.resolve();
 			}));
 		}).then(function() {
-			return data.save(plan.edits, { reloadNetwork: true, reloadWifi: !!plan.wifi });
+			/* Behind the rollback timer: the caller confirms only after it can
+			   still reach the router, so a switch that cuts access undoes
+			   itself instead of needing the reset button. */
+			return data.applyWithRollback(plan.edits, timeout || 90);
 		});
 	},
 

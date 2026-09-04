@@ -152,6 +152,46 @@ return baseclass.extend({
 		});
 	},
 
+	/*
+	 * Applies edits behind netifd's rollback timer.
+	 *
+	 * `uci apply` with rollback stages the change, applies it, and starts a
+	 * countdown: unless `uci confirm` arrives before the timer expires, the
+	 * router puts everything back. That is the difference between a mode
+	 * switch that goes wrong and a router that has to be recovered with the
+	 * reset button - the caller only confirms once it can still talk to the
+	 * device on its new address.
+	 *
+	 * Nothing is committed here. If the confirmation never comes, the staged
+	 * changes are discarded along with the running state.
+	 */
+	applyWithRollback: function(edits, timeout) {
+		var sets = edits.filter(function(e) { return e && e.section && e.values; });
+
+		if (!sets.length)
+			return Promise.resolve({ changed: false });
+
+		return ubusBatch(sets.map(function(e) {
+			return [ 'uci', 'set', { config: e.config, section: e.section, values: e.values } ];
+		})).then(function() {
+			return ubusBatch([
+				[ 'uci', 'apply', { rollback: true, timeout: timeout || 90 } ]
+			]);
+		}).then(function() {
+			return { changed: true, pending: true };
+		});
+	},
+
+	/* Tells the router the change worked; without this it rolls back. */
+	confirmApply: function() {
+		return ubusBatch([ [ 'uci', 'confirm', {} ] ]);
+	},
+
+	/* Throws the staged change away immediately instead of waiting out the timer. */
+	rollbackApply: function() {
+		return ubusBatch([ [ 'uci', 'rollback', {} ] ]);
+	},
+
 	/* Removes one option (or a whole section when `option` is omitted). */
 	uciDelete: function(config, section, option) {
 		var params = { config: config, section: section };

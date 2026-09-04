@@ -54,9 +54,9 @@ python scripts/deploy_ubus.py <router-ip> [root-password]
 ```sh
 cd /tmp
 B=https://cdn.jsdelivr.net/gh/slemanalagha22/smartlink-luci@main/packages
-wget $B/luci-theme-smartlink_1.2.5-1_all.ipk
-wget $B/luci-app-smartlink_1.2.5-1_all.ipk
-opkg install luci-theme-smartlink_1.2.5-1_all.ipk luci-app-smartlink_1.2.5-1_all.ipk
+wget $B/luci-theme-smartlink_1.3.0-1_all.ipk
+wget $B/luci-app-smartlink_1.3.0-1_all.ipk
+opkg install luci-theme-smartlink_1.3.0-1_all.ipk luci-app-smartlink_1.3.0-1_all.ipk
 ```
 
 ### Remove
