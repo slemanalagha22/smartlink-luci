@@ -161,6 +161,17 @@ scripts/
 packaging — useful while iterating; `build_ipk.py` is what produces something
 installable.
 
+### The full source
+
+This repository carries what `install.sh` needs to fetch, so that a router can
+install SMARTLink over a slow link without pulling anything it will not use.
+The complete working tree — the browser preview harness, the ubus deployer,
+the login-artwork generator, the recovery tooling, and the flash dumps from the
+device this was developed against — lives in
+[**smartlink-full**](https://github.com/slemanalagha22/smartlink-full).
+
+Change things there; release from here.
+
 ---
 
 ## Set a root password
