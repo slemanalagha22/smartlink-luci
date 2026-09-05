@@ -35,6 +35,27 @@ var tempCache;
  * calls travel as ONE JSON-RPC array: the dashboard needs two round trips in
  * total rather than one per value.
  */
+/* Dotted quad to a 32-bit number, or null if it is not one. */
+function ipToInt(addr) {
+	var parts = String(addr || '').split('.');
+
+	if (parts.length != 4)
+		return null;
+
+	var n = 0;
+
+	for (var i = 0; i < 4; i++) {
+		var b = Number(parts[i]);
+
+		if (!(b >= 0 && b <= 255))
+			return null;
+
+		n = ((n << 8) | b) >>> 0;
+	}
+
+	return n;
+}
+
 function ubusBatch(calls) {
 	if (!calls.length)
 		return Promise.resolve([]);
@@ -593,8 +614,57 @@ return baseclass.extend({
 		});
 	},
 
+	/*
+	 * The subnets this router serves, as [network, mask] pairs.
+	 *
+	 * Everything except loopback and the uplink. In WISP and repeater mode the
+	 * uplink is a wireless station on someone else's LAN, and the neighbour
+	 * table fills up with their devices - those are not our clients and must
+	 * not be counted as such.
+	 */
+	localSubnets: function(snap) {
+		var uplink = (this.pickInterface(snap.interfaces, 'wan') ||
+		              this.pickInterface(snap.interfaces, 'wwan') || {}).interface,
+		    out = [];
+
+		(snap.interfaces || []).forEach(function(net) {
+			if (net.interface == 'loopback' || net.interface == uplink)
+				return;
+
+			(net['ipv4-address'] || []).forEach(function(a) {
+				var n = ipToInt(a.address);
+
+				if (n == null || a.mask == null)
+					return;
+
+				var bits = Number(a.mask),
+				    mask = bits <= 0 ? 0 : (0xFFFFFFFF << (32 - bits)) >>> 0;
+
+				out.push([ (n & mask) >>> 0, mask ]);
+			});
+		});
+
+		return out;
+	},
+
+	/* Every MAC the router itself answers on, so it never lists itself. */
+	ownMacs: function(snap) {
+		var out = {};
+
+		Object.keys(snap.devices || {}).forEach(function(name) {
+			var d = snap.devices[name] || {},
+			    mac = d.mac || (d.link || {}).mac;
+
+			if (mac)
+				out[String(mac).toUpperCase()] = true;
+		});
+
+		return out;
+	},
+
 	clientsFrom: function(snap, radios) {
-		var byMac = {},
+		var self = this,
+		    byMac = {},
 		    hints = snap.hints || {};
 
 		function hint(mac) {
@@ -636,6 +706,50 @@ return baseclass.extend({
 			byMac[mac].expires = lease.expires;
 		});
 
+		/*
+		 * A wired device is not obliged to ask us for an address. One with a
+		 * static IP, or one whose lease was handed out by an upstream router
+		 * while we bridge, never appears in dhcp_leases - but it does appear
+		 * in the neighbour table the moment it talks to anything.
+		 *
+		 * So take the hints too, keeping only what is addressed on one of our
+		 * own subnets and is not the router itself. Without this the wired
+		 * count reads zero on a repeater whose clients are served upstream.
+		 */
+		var subnets = self.localSubnets(snap),
+		    own = self.ownMacs(snap);
+
+		function isLocal(ip) {
+			var n = ipToInt(ip);
+
+			if (n == null)
+				return false;
+
+			return subnets.some(function(s) {
+				return ((n & s[1]) >>> 0) === s[0];
+			});
+		}
+
+		Object.keys(hints).forEach(function(raw) {
+			var mac = String(raw).toUpperCase();
+
+			if (byMac[mac] || own[mac])
+				return;
+
+			var ip = (hints[raw].ipaddrs || []).filter(isLocal)[0];
+
+			if (!ip)
+				return;
+
+			byMac[mac] = {
+				mac:  mac,
+				kind: 'wired',
+				band: null,
+				name: hints[raw].name || null,
+				ip:   ip
+			};
+		});
+
 		Object.keys(byMac).forEach(function(mac) {
 			var c = byMac[mac],
 			    h = hint(mac);
@@ -643,7 +757,7 @@ return baseclass.extend({
 			c.name = c.name || h.name || null;
 
 			if (!c.ip && h.ipaddrs && h.ipaddrs.length)
-				c.ip = h.ipaddrs[0];
+				c.ip = h.ipaddrs.filter(isLocal)[0] || h.ipaddrs[0];
 		});
 
 		var list = Object.keys(byMac).map(function(m) { return byMac[m]; });
