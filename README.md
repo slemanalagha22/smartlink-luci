@@ -7,6 +7,28 @@ tools, and a four-step setup wizard.
 No firmware rebuild and no changes to the base system. Two ordinary `.ipk`
 packages, the same shape Argon ships in.
 
+## What it runs on
+
+OpenWrt **23.05 or newer**, including 24.10. Both packages are architecture
+`all` — no compiled code — so the CPU does not matter: mt7621, ipq40xx, ath79,
+x86, a Raspberry Pi.
+
+The line that matters is not the OpenWrt version number but LuCI's template
+engine. SMARTLink ships `.ut` templates, and LuCI only started rendering ucode
+in 23.05; 22.03 and earlier render Lua and will not load the theme at all.
+`install.sh` checks for the ucode template directory and stops rather than
+half-installing.
+
+Two things degrade rather than fail on older or unusual hardware:
+
+* the **ports panel** reads `luci.getBuiltinEthernetPorts`, which answers on DSA
+  targets. On a `swconfig` target it returns nothing and the panel stays empty;
+  every other page is unaffected.
+* **repeater mode** needs `relayd`, which is not in a default image
+  (`opkg install relayd`). The other three modes need nothing extra.
+
+Proven on: `KT-708H 1.1` / `r24113-fa0a7e00e8`, kernel 5.15, ramips/mt7621.
+
 ## Install on a router (one command)
 
 ```sh

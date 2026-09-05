@@ -42,7 +42,7 @@ die() { echo "!!  $*" >&2; exit 1; }
 command -v opkg >/dev/null 2>&1 || die "opkg not found - this is not an OpenWrt system"
 
 if [ ! -d /usr/share/ucode/luci/template/themes ]; then
-	die "this LuCI is too old (no ucode templates). SMARTLink needs OpenWrt 21.02 or newer."
+	die "this LuCI renders Lua templates, not ucode. SMARTLink needs OpenWrt 23.05 or newer."
 fi
 
 # ------------------------------------------------------------- download ---
