@@ -26,7 +26,7 @@ else
 	MIRRORS="https://cdn.jsdelivr.net/gh/$REPO@main/packages
 https://raw.githubusercontent.com/$REPO/main/packages"
 fi
-VERSION="1.3.0-1"
+VERSION="1.3.1-1"
 TMP="/tmp/smartlink-install"
 
 THEME="luci-theme-smartlink_${VERSION}_all.ipk"

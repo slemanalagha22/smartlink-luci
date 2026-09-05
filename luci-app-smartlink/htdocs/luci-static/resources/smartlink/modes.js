@@ -122,6 +122,49 @@ function lanBridgeOf(net) {
 	return { section: 'lan', ports: legacy, onInterface: true };
 }
 
+/*
+ * The firewall zone that masquerades the uplink, and its network list.
+ *
+ * A WISP uplink is a wan by every meaning except its name: it needs to sit in
+ * the zone that does NAT, or the router reaches the internet and everything
+ * behind it does not - traffic from the lan zone has nowhere to be forwarded
+ * to, and nothing rewrites its source address.
+ */
+function wanZoneOf(firewall) {
+	var name = Object.keys(firewall || {}).filter(function(k) {
+		var sec = firewall[k] || {};
+		return sec['.type'] === 'zone' && sec.name === 'wan';
+	})[0];
+
+	if (!name)
+		return null;
+
+	return {
+		section: name,
+		networks: [].concat(firewall[name].network || [])
+			.join(' ').split(/\s+/).filter(Boolean)
+	};
+}
+
+/* The zone's network list with `wwan` present, or absent. */
+function zoneEdit(cfg, include) {
+	var zone = wanZoneOf(cfg.firewall);
+
+	if (!zone)
+		return [];
+
+	var has = zone.networks.indexOf('wwan') >= 0;
+
+	if (include === has)
+		return [];
+
+	var networks = include
+		? zone.networks.concat([ 'wwan' ])
+		: zone.networks.filter(function(n) { return n !== 'wwan'; });
+
+	return [ { config: 'firewall', section: zone.section, values: { network: networks } } ];
+}
+
 function isWanPort(p) {
 	return p === 'wan' || /^wan\d+$/.test(p);
 }
@@ -216,7 +259,7 @@ return baseclass.extend({
 					} },
 					{ config: 'network', section: 'wan', values: { disabled: '0' } },
 					{ config: 'dhcp', section: 'lan', values: { ignore: '0' } }
-				].concat(keepWifiServing(cfg, STA_SECTION)),
+				].concat(keepWifiServing(cfg, STA_SECTION)).concat(zoneEdit(cfg, false)),
 				drops: [ [ 'wireless', STA_SECTION ], [ 'network', 'wwan' ] ],
 				creates: [],
 				address: lan.ipaddr || '192.168.1.1',
@@ -254,7 +297,7 @@ return baseclass.extend({
 					{ config: 'network', section: 'lan', values: values },
 					{ config: 'network', section: 'wan', values: { disabled: '1' } },
 					{ config: 'dhcp', section: 'lan', values: { ignore: '1' } }
-				].concat(keepWifiServing(cfg, STA_SECTION)),
+				].concat(keepWifiServing(cfg, STA_SECTION)).concat(zoneEdit(cfg, false)),
 				drops: [ [ 'wireless', STA_SECTION ], [ 'network', 'wwan' ] ],
 				creates: [],
 				address: fixed ? opts.ipaddr : null,
@@ -277,7 +320,7 @@ return baseclass.extend({
 				} },
 				{ config: 'network', section: 'wwan', values: { proto: wisp ? 'dhcp' : 'none' } },
 				{ config: 'dhcp', section: 'lan', values: { ignore: wisp ? '0' : '1' } }
-			].concat(keepWifiServing(cfg, STA_SECTION)),
+			].concat(keepWifiServing(cfg, STA_SECTION)).concat(zoneEdit(cfg, wisp)),
 			drops: [],
 			creates: [
 				{ config: 'wireless', section: STA_SECTION, type: 'wifi-iface' },
