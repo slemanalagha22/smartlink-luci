@@ -4,3 +4,7 @@ dist/
 # Local preview harnesses, not part of the shipped packages
 preview/
 .claude/
+
+# Flash dumps taken from a device: large, and specific to one unit's
+# calibration and MAC addresses. Keep them, but not in the repository.
+backups/
